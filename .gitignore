@@ -1,0 +1,14 @@
+node_modules/
+dist/
+build/
+package-lock.json
+
+# Rust
+rust/pkg/
+debug
+target
+**/*.rs.bk
+*.pdb
+**/mutants.out*/
+
+
