@@ -1,5 +1,10 @@
 import type { DBSchema } from "idb";
-import { ElementTypes, type Pos, type WirePos } from "../utils/types";
+import {
+	ElementTypes,
+	type Orientation,
+	type Pos,
+	type WirePos,
+} from "../utils/types";
 
 export interface getAllComponents {
 	[ElementTypes.Wire]: GetWires;
@@ -20,30 +25,37 @@ export type GetWires = {
 export type GetAndGates = {
 	id: number;
 	positions: Pos;
+	orientation: Orientation;
 }[];
 export type GetOrGates = {
 	id: number;
 	positions: Pos;
+	orientation: Orientation;
 }[];
 export type GetXorGates = {
 	id: number;
 	positions: Pos;
+	orientation: Orientation;
 }[];
 export type GetNotGates = {
 	id: number;
 	positions: Pos;
+	orientation: Orientation;
 }[];
 export type GetBufferGates = {
 	id: number;
 	positions: Pos;
+	orientation: Orientation;
 }[];
 export type GetLatches = {
 	id: number;
 	positions: Pos;
+	orientation: Orientation;
 }[];
 export type GetTimer = {
 	id: number;
 	positions: Pos;
+	orientation: Orientation;
 	ticks: number;
 }[];
 export type GetSwitch = {

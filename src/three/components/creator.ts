@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import type { Pos, WirePos } from "../../utils/types";
+import type { Orientation, Pos, WirePos } from "../../utils/types";
 import { OneInputGate } from "../components/gate/oneInputGate";
 import { TwoInputsGate } from "../components/gate/twoInputsGate";
 import { Switch } from "../components/switch";
@@ -40,61 +40,96 @@ export class ComponentsCreator {
 			this.material[MaterialType.WireOff],
 		);
 	}
-	public AndGate([x, y]: Pos) {
-		return new TwoInputsGate(x, y, {
-			connector: this.material[MaterialType.Connector],
-			gate: this.material[MaterialType.AndGate],
-			topOn: this.material[MaterialType.GateOn],
-			topOff: this.material[MaterialType.GateOff],
-		});
+	public AndGate([x, y]: Pos, orientation: Orientation) {
+		return new TwoInputsGate(
+			x,
+			y,
+			{
+				connector: this.material[MaterialType.Connector],
+				gate: this.material[MaterialType.AndGate],
+				topOn: this.material[MaterialType.GateOn],
+				topOff: this.material[MaterialType.GateOff],
+			},
+			orientation,
+		);
 	}
-	public OrGate([x, y]: Pos) {
-		return new TwoInputsGate(x, y, {
-			connector: this.material[MaterialType.Connector],
-			gate: this.material[MaterialType.OrGate],
-			topOn: this.material[MaterialType.GateOn],
-			topOff: this.material[MaterialType.GateOff],
-		});
+	public OrGate([x, y]: Pos, orientation: Orientation) {
+		return new TwoInputsGate(
+			x,
+			y,
+			{
+				connector: this.material[MaterialType.Connector],
+				gate: this.material[MaterialType.OrGate],
+				topOn: this.material[MaterialType.GateOn],
+				topOff: this.material[MaterialType.GateOff],
+			},
+			orientation,
+		);
 	}
-	public XorGate([x, y]: Pos) {
-		return new TwoInputsGate(x, y, {
-			connector: this.material[MaterialType.Connector],
-			gate: this.material[MaterialType.XorGate],
-			topOn: this.material[MaterialType.GateOn],
-			topOff: this.material[MaterialType.GateOff],
-		});
+	public XorGate([x, y]: Pos, orientation: Orientation) {
+		return new TwoInputsGate(
+			x,
+			y,
+			{
+				connector: this.material[MaterialType.Connector],
+				gate: this.material[MaterialType.XorGate],
+				topOn: this.material[MaterialType.GateOn],
+				topOff: this.material[MaterialType.GateOff],
+			},
+			orientation,
+		);
 	}
-	public NotGate([x, y]: Pos) {
-		return new OneInputGate(x, y, {
-			connector: this.material[MaterialType.Connector],
-			gate: this.material[MaterialType.NotGate],
-			topOn: this.material[MaterialType.GateOn],
-			topOff: this.material[MaterialType.GateOff],
-		});
+	public NotGate([x, y]: Pos, orientation: Orientation) {
+		return new OneInputGate(
+			x,
+			y,
+			{
+				connector: this.material[MaterialType.Connector],
+				gate: this.material[MaterialType.NotGate],
+				topOn: this.material[MaterialType.GateOn],
+				topOff: this.material[MaterialType.GateOff],
+			},
+			orientation,
+		);
 	}
-	public BufferGate([x, y]: Pos) {
-		return new OneInputGate(x, y, {
-			connector: this.material[MaterialType.Connector],
-			gate: this.material[MaterialType.BufferGate],
-			topOn: this.material[MaterialType.GateOn],
-			topOff: this.material[MaterialType.GateOff],
-		});
+	public BufferGate([x, y]: Pos, orientation: Orientation) {
+		return new OneInputGate(
+			x,
+			y,
+			{
+				connector: this.material[MaterialType.Connector],
+				gate: this.material[MaterialType.BufferGate],
+				topOn: this.material[MaterialType.GateOn],
+				topOff: this.material[MaterialType.GateOff],
+			},
+			orientation,
+		);
 	}
-	public Latch([x, y]: Pos) {
-		return new TwoInputsGate(x, y, {
-			connector: this.material[MaterialType.Connector],
-			gate: this.material[MaterialType.LatchGate],
-			topOn: this.material[MaterialType.GateOn],
-			topOff: this.material[MaterialType.GateOff],
-		});
+	public Latch([x, y]: Pos, orientation: Orientation) {
+		return new TwoInputsGate(
+			x,
+			y,
+			{
+				connector: this.material[MaterialType.Connector],
+				gate: this.material[MaterialType.LatchGate],
+				topOn: this.material[MaterialType.GateOn],
+				topOff: this.material[MaterialType.GateOff],
+			},
+			orientation,
+		);
 	}
-	public Timer([x, y]: Pos) {
-		return new OneInputGate(x, y, {
-			connector: this.material[MaterialType.Connector],
-			gate: this.material[MaterialType.TimerGate],
-			topOn: this.material[MaterialType.GateOn],
-			topOff: this.material[MaterialType.GateOff],
-		});
+	public Timer([x, y]: Pos, orientation: Orientation) {
+		return new OneInputGate(
+			x,
+			y,
+			{
+				connector: this.material[MaterialType.Connector],
+				gate: this.material[MaterialType.TimerGate],
+				topOn: this.material[MaterialType.GateOn],
+				topOff: this.material[MaterialType.GateOff],
+			},
+			orientation,
+		);
 	}
 	public Switch([x, y]: Pos, comp_id: number) {
 		return new Switch(x, y, comp_id, {

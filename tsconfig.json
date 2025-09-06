@@ -18,7 +18,11 @@
 		"noUnusedLocals": false,
 		"noUnusedParameters": false,
 		"noFallthroughCasesInSwitch": true,
-		"noUncheckedSideEffectImports": true
+		"noUncheckedSideEffectImports": true,
+
+		"paths": {
+			"@rust/*": ["./rust/*"]
+		}
 	},
 	"include": ["src"]
 }

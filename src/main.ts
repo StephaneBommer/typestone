@@ -15,6 +15,7 @@ import {
 	clockWiresArray,
 } from "./three/test";
 import { AIM_HZ, MAX_DEEP, SIZE } from "./utils/const";
+import { Orientation } from "./utils/types";
 
 (async () => {
 	await init();
@@ -26,7 +27,7 @@ import { AIM_HZ, MAX_DEEP, SIZE } from "./utils/const";
 	const scene = new SimulationScene();
 	const simulation = new Simulation(scene, db);
 
-	// dbComponents.Wire.forEach((wire) => simulation.Wire(wire.positions));
+	dbComponents.Wire.forEach((wire) => simulation.Wire(wire.positions));
 
 	simulation.Switch([40, 32]);
 	const editMode = new EditMode(scene, db);
@@ -38,7 +39,7 @@ import { AIM_HZ, MAX_DEEP, SIZE } from "./utils/const";
 		simulation.AndGate(not);
 	});
 	adjustedLatchArray.forEach((latch) => {
-		simulation.Latch(latch);
+		simulation.Latch(latch.pos, latch.orientation);
 	});
 	adjustedTimerArray.forEach((timer) => {
 		simulation.Timer([timer[0], timer[1]], 1);
@@ -50,9 +51,15 @@ import { AIM_HZ, MAX_DEEP, SIZE } from "./utils/const";
 		simulation.XorGate(xor);
 	});
 
+	simulation.AndGate([15, 31], Orientation.Right);
+	simulation.AndGate([6, 36], Orientation.Right);
+	simulation.AndGate([11, 46], Orientation.Right);
+	simulation.AndGate([13, 46], Orientation.Left);
+	simulation.AndGate([24, 39], Orientation.Up);
+	simulation.AndGate([24, 41], Orientation.Down);
 	simulation.Switch([5, 14]);
 	simulation.Switch([5, 18]);
-	simulation.Latch([14, 15]);
+	simulation.Latch([14, 15], Orientation.Right);
 	simulation.Timer([11, 4], 1);
 	simulation.Timer([25, 4], 1);
 	simulation.Timer([32, 4], 1);

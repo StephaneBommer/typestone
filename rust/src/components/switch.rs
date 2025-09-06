@@ -1,5 +1,5 @@
 use crate::circuit_element::CircuitElement;
-use crate::types::Position;
+use crate::types::{Orientation, Position};
 
 pub struct Switch {
     pub circuit_element: CircuitElement,

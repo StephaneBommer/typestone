@@ -1,6 +1,15 @@
 use wasm_bindgen::prelude::*;
 
-pub type Position = [u32; 2];
+pub type Position = [i32; 2];
+
+#[wasm_bindgen]
+pub enum Orientation {
+    Up,
+    Right,
+    Down,
+    Left,
+}
+
 pub struct OldWireGroup {
     pub index: usize,
     pub state: bool,

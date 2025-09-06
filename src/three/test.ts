@@ -1,3 +1,5 @@
+import { Orientation } from "../utils/types";
+
 const FullAdderwiresArrayFullAdder: [number, number][][] = [
 	[
 		[60, 3],
@@ -56,7 +58,9 @@ const FullAdderandsArray: [number, number][] = [
 
 const fullAddeerXorArray: [number, number][] = [[65, 4]];
 
-const FullAdderlatchArray: [number, number, boolean][] = [[20, 7, false]];
+const FullAdderlatchArray: [number, number, boolean, Orientation][] = [
+	[20, 7, false, Orientation.Right],
+];
 
 const FullAddertimerArray: [number, number, number][] = [[27, 7, 100]];
 
@@ -90,9 +94,12 @@ export const adjustedAndsArray = fullAdders.flatMap((fullAdder) =>
 );
 
 export const adjustedLatchArray = fullAdders.flatMap((fullAdder) =>
-	FullAdderlatchArray.map((latch) =>
-		adjustPoint([latch[0], latch[1]], fullAdder[0], fullAdder[1]),
-	),
+	FullAdderlatchArray.map((latch) => {
+		return {
+			pos: adjustPoint([latch[0], latch[1]], fullAdder[0], fullAdder[1]),
+			orientation: latch[3],
+		};
+	}),
 );
 
 export const adjustedTimerArray = fullAdders.flatMap((fullAdder) =>

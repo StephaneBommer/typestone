@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { GRID_SCALE, SIZE } from "../utils/const";
+import { SIZE } from "../utils/const";
 
 export class Grid extends THREE.Group {
 	private materialLine: THREE.LineBasicMaterial;
@@ -13,7 +13,7 @@ export class Grid extends THREE.Group {
 		this.materialLineEdit = new THREE.LineBasicMaterial({
 			color: 0x606060,
 		});
-		this.createGrid(width * GRID_SCALE, height * GRID_SCALE, SIZE, color);
+		this.createGrid(width, height, SIZE, color);
 	}
 
 	private createGrid(
@@ -23,8 +23,8 @@ export class Grid extends THREE.Group {
 		color: number,
 	): void {
 		const pointsHorizontal = [
-			new THREE.Vector3(-width / 2, 0, 0),
-			new THREE.Vector3(width / 2, 0, 0),
+			new THREE.Vector3(0, 0, 0),
+			new THREE.Vector3(width, 0, 0),
 		];
 		const geometryLineHorizontal = new THREE.BufferGeometry().setFromPoints(
 			pointsHorizontal,
@@ -36,13 +36,13 @@ export class Grid extends THREE.Group {
 
 		for (let i = 0; i >= -height; i -= step) {
 			const lineCloned = lineHorizontal.clone();
-			lineCloned.position.y = i + height / 2;
+			lineCloned.position.y = i;
 			this.add(lineCloned);
 		}
 
 		const pointsVertical = [
-			new THREE.Vector3(0, height / 2, 0),
-			new THREE.Vector3(0, -height / 2, 0),
+			new THREE.Vector3(0, 0, 0),
+			new THREE.Vector3(0, -height, 0),
 		];
 		const geometryLineVertical = new THREE.BufferGeometry().setFromPoints(
 			pointsVertical,
@@ -54,7 +54,7 @@ export class Grid extends THREE.Group {
 
 		for (let i = 0; i < width; i += step) {
 			const lineCloned = lineVertical.clone();
-			lineCloned.position.x = i - width / 2;
+			lineCloned.position.x = i;
 			this.add(lineCloned);
 		}
 	}

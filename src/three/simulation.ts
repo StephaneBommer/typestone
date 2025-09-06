@@ -6,6 +6,7 @@ import * as RUST from "../../rust/pkg/rust_counter";
 import type { SimulationDb } from "../db/class";
 import type { GetWires } from "../db/type";
 import type { Pos, WirePos } from "../utils/types";
+import { Orientation } from "../utils/types";
 import type { OneInputGate } from "./components/gate/oneInputGate";
 import type { TwoInputsGate } from "./components/gate/twoInputsGate";
 import { Switch } from "./components/switch";
@@ -60,50 +61,76 @@ export class Simulation {
 		this.scene.add(mesh);
 		return mesh;
 	}
-	public AndGate(pos: Pos) {
-		const id = this.rust_simulation.add_and_gate(new Uint32Array(pos));
-		const mesh = this.scene.creator.AndGate(pos);
+	public AndGate(pos: Pos, orientation: Orientation = Orientation.Right) {
+		const id = this.rust_simulation.add_and_gate(
+			new Int32Array(pos),
+			orientation,
+		);
+		const mesh = this.scene.creator.AndGate(pos, orientation);
 		this.scene.add(mesh);
 		this.components[id] = mesh;
 	}
-	public OrGate(pos: Pos) {
-		const id = this.rust_simulation.add_or_gate(new Uint32Array(pos));
-		const mesh = this.scene.creator.OrGate(pos);
+	public OrGate(pos: Pos, orientation: Orientation = Orientation.Right) {
+		const id = this.rust_simulation.add_or_gate(
+			new Int32Array(pos),
+			orientation,
+		);
+		const mesh = this.scene.creator.OrGate(pos, orientation);
 		this.scene.add(mesh);
 		this.components[id] = mesh;
 	}
-	public XorGate(pos: Pos) {
-		const id = this.rust_simulation.add_xor_gate(new Uint32Array(pos));
-		const mesh = this.scene.creator.XorGate(pos);
+	public XorGate(pos: Pos, orientation: Orientation = Orientation.Right) {
+		const id = this.rust_simulation.add_xor_gate(
+			new Int32Array(pos),
+			orientation,
+		);
+		const mesh = this.scene.creator.XorGate(pos, orientation);
 		this.scene.add(mesh);
 		this.components[id] = mesh;
 	}
-	public NotGate(pos: Pos) {
-		const id = this.rust_simulation.add_not_gate(new Uint32Array(pos));
-		const mesh = this.scene.creator.NotGate(pos);
+	public NotGate(pos: Pos, orientation: Orientation = Orientation.Right) {
+		const id = this.rust_simulation.add_not_gate(
+			new Int32Array(pos),
+			orientation,
+		);
+		const mesh = this.scene.creator.NotGate(pos, orientation);
 		this.scene.add(mesh);
 		this.components[id] = mesh;
 	}
-	public BufferGate(pos: Pos) {
-		const id = this.rust_simulation.add_buffer_gate(new Uint32Array(pos));
-		const mesh = this.scene.creator.BufferGate(pos);
+	public BufferGate(pos: Pos, orientation: Orientation = Orientation.Right) {
+		const id = this.rust_simulation.add_buffer_gate(
+			new Int32Array(pos),
+			orientation,
+		);
+		const mesh = this.scene.creator.BufferGate(pos, orientation);
 		this.scene.add(mesh);
 		this.components[id] = mesh;
 	}
-	public Latch(pos: Pos) {
-		const id = this.rust_simulation.add_latch_gate(new Uint32Array(pos));
-		const mesh = this.scene.creator.Latch(pos);
+	public Latch(pos: Pos, orientation: Orientation = Orientation.Right) {
+		const id = this.rust_simulation.add_latch_gate(
+			new Int32Array(pos),
+			orientation,
+		);
+		const mesh = this.scene.creator.Latch(pos, orientation);
 		this.scene.add(mesh);
 		this.components[id] = mesh;
 	}
-	public Timer(pos: Pos, ticks: number) {
-		const id = this.rust_simulation.add_timer(new Uint32Array(pos), ticks);
-		const mesh = this.scene.creator.Timer(pos);
+	public Timer(
+		pos: Pos,
+		ticks: number,
+		orientation: Orientation = Orientation.Right,
+	) {
+		const id = this.rust_simulation.add_timer(
+			new Int32Array(pos),
+			ticks,
+			orientation,
+		);
+		const mesh = this.scene.creator.Timer(pos, orientation);
 		this.scene.add(mesh);
 		this.components[id] = mesh;
 	}
 	public Switch(pos: Pos) {
-		const id = this.rust_simulation.add_switch(new Uint32Array(pos));
+		const id = this.rust_simulation.add_switch(new Int32Array(pos));
 		const mesh = this.scene.creator.Switch(pos, id);
 		this.scene.add(mesh);
 		this.components[id] = mesh;

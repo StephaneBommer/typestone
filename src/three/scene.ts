@@ -233,7 +233,7 @@ export class SimulationScene extends THREE.Scene {
 
 	public addAndGate(andGates: GetAndGates) {
 		andGates.forEach((gate) => {
-			const mesh = this.creator.AndGate(gate.positions);
+			const mesh = this.creator.AndGate(gate.positions, gate.orientation);
 			this.add(mesh);
 			this.components.andGates[gate.id] = mesh;
 		});
@@ -241,7 +241,7 @@ export class SimulationScene extends THREE.Scene {
 
 	public addOrGate(orGates: GetOrGates) {
 		orGates.forEach((gate) => {
-			const mesh = this.creator.OrGate(gate.positions);
+			const mesh = this.creator.OrGate(gate.positions, gate.orientation);
 			this.add(mesh);
 			this.components.orGates[gate.id] = mesh;
 		});
@@ -249,7 +249,7 @@ export class SimulationScene extends THREE.Scene {
 
 	public addXorGate(xorGates: GetXorGates) {
 		xorGates.forEach((gate) => {
-			const mesh = this.creator.XorGate(gate.positions);
+			const mesh = this.creator.XorGate(gate.positions, gate.orientation);
 			this.add(mesh);
 			this.components.xorGates[gate.id] = mesh;
 		});
@@ -257,7 +257,7 @@ export class SimulationScene extends THREE.Scene {
 
 	public addNotGate(notGates: GetNotGates) {
 		notGates.forEach((gate) => {
-			const mesh = this.creator.NotGate(gate.positions);
+			const mesh = this.creator.NotGate(gate.positions, gate.orientation);
 			this.add(mesh);
 			this.components.notGates[gate.id] = mesh;
 		});
@@ -265,7 +265,7 @@ export class SimulationScene extends THREE.Scene {
 
 	public addBufferGate(bufferGates: GetBufferGates) {
 		bufferGates.forEach((gate) => {
-			const mesh = this.creator.BufferGate(gate.positions);
+			const mesh = this.creator.BufferGate(gate.positions, gate.orientation);
 			this.add(mesh);
 			this.components.bufferGates[gate.id] = mesh;
 		});
@@ -273,7 +273,7 @@ export class SimulationScene extends THREE.Scene {
 
 	public addLatches(latches: GetLatches) {
 		latches.forEach((gate) => {
-			const mesh = this.creator.Latch(gate.positions);
+			const mesh = this.creator.Latch(gate.positions, gate.orientation);
 			this.add(mesh);
 			this.components.latches[gate.id] = mesh;
 		});
@@ -281,7 +281,7 @@ export class SimulationScene extends THREE.Scene {
 
 	public addTimer(timer: GetTimer) {
 		timer.forEach((gate) => {
-			const mesh = this.creator.Timer(gate.positions);
+			const mesh = this.creator.Timer(gate.positions, gate.orientation);
 			this.add(mesh);
 			this.components.timer[gate.id] = mesh;
 		});
