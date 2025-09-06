@@ -14,7 +14,7 @@ import {
 	clockNotArray,
 	clockWiresArray,
 } from "./three/test";
-import { SIZE } from "./utils/const";
+import { AIM_HZ, MAX_DEEP, SIZE } from "./utils/const";
 
 (async () => {
 	await init();
@@ -148,11 +148,10 @@ import { SIZE } from "./utils/const";
 
 	const clock = new THREE.Clock();
 
-	const aimHz = 5000;
 	let fraction = 0;
 
 	const tick = () => {
-		const deltaHz = aimHz * clock.getDelta();
+		const deltaHz = AIM_HZ * clock.getDelta();
 		fraction += deltaHz;
 
 		const nextHz = Math.floor(fraction);
@@ -163,7 +162,7 @@ import { SIZE } from "./utils/const";
 
 		if (nextHz >= 1) {
 			const new_simulation_state = simulation.rust_simulation.compute_frame(
-				100,
+				MAX_DEEP,
 				nextHz,
 			);
 			// console.log(new_simulation_state);
