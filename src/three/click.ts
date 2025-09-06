@@ -73,7 +73,7 @@ export class GridClickHandler {
 				gridY <= pos[1] + 1 &&
 				gridY >= pos[1] - 1
 			) {
-				// this.simulation.toggle_switch(swi.comp_id);
+				this.simulation.toggle_switch(swi.comp_id);
 			}
 		});
 	}

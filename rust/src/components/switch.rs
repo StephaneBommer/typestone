@@ -8,9 +8,9 @@ pub struct Switch {
 }
 
 impl Switch {
-    pub fn new(id: usize, position: Position, tsid: usize) -> Self {
+    pub fn new(id: usize, position: Position) -> Self {
         Switch {
-            circuit_element: CircuitElement::new(id, tsid),
+            circuit_element: CircuitElement::new(id),
             position,
             output_position: position,
         }

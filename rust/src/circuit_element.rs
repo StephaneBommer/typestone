@@ -7,17 +7,15 @@ pub struct CircuitElement {
     pub inputs: Vec<CircuitElementEnum>,
     pub outputs: Vec<CircuitElementEnum>,
     pub id: usize,
-    pub tsid: usize,
 }
 
 impl CircuitElement {
-    pub fn new(id: usize, tsid: usize) -> Self {
+    pub fn new(id: usize) -> Self {
         CircuitElement {
             state: false,
             inputs: Vec::new(),
             outputs: Vec::new(),
             id,
-            tsid,
         }
     }
 

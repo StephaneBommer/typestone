@@ -30,7 +30,7 @@ pub enum ComposantsEnum {
 pub struct Simulation {
     composants: Vec<ComposantsEnum>,
     wires: Vec<Wire>,
-    wire_set: HashSet<(usize, usize)>,
+    wire_set: HashSet<usize>,
     wire_groups: Vec<WireGroup>,
     tick_counter: u32,
 }
@@ -218,7 +218,7 @@ impl Simulation {
                 wire_group
                     .wires
                     .iter()
-                    .map(move |wire| ChangedElement::new(wire.1.clone(), state))
+                    .map(move |wire| ChangedElement::new(wire.clone(), state))
             })
             .collect()
     }

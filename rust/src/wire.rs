@@ -8,9 +8,9 @@ pub struct Wire {
 }
 
 impl Wire {
-    pub fn new(id: usize, positions: Vec<Position>, tsid: usize) -> Self {
+    pub fn new(id: usize, positions: Vec<Position>) -> Self {
         Wire {
-            circuit_element: CircuitElement::new(id, tsid),
+            circuit_element: CircuitElement::new(id),
             positions,
         }
     }
@@ -19,19 +19,19 @@ impl Wire {
 pub struct WireGroup {
     pub circuit_element: CircuitElement,
     pub positions: Vec<Position>,
-    pub wires: Vec<(usize, usize)>,
+    pub wires: Vec<usize>,
 }
 
 impl WireGroup {
     pub fn new(id: usize) -> Self {
         WireGroup {
-            circuit_element: CircuitElement::new(id, 0),
+            circuit_element: CircuitElement::new(id),
             wires: Vec::new(),
             positions: Vec::new(),
         }
     }
 
-    pub fn add_wire(&mut self, wire: (usize, usize), positions: Vec<Position>) {
+    pub fn add_wire(&mut self, wire: usize, positions: Vec<Position>) {
         self.positions.extend(positions);
         self.wires.push(wire)
     }

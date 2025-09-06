@@ -47,11 +47,11 @@ export class Simulation {
 		this.db = db;
 		this.rust_simulation = RUST.Simulation.new();
 	}
-	public Wire(wire: GetWires[number], edit = false) {
-		const mesh = this.scene.creator.Wire(wire.positions);
+	public Wire(wire: GetWires[number]["positions"], edit = false) {
+		const mesh = this.scene.creator.Wire(wire);
 		this.scene.add(mesh);
 		if (edit) return mesh;
-		const id = this.rust_simulation.add_wire(wire.positions, wire.id);
+		const id = this.rust_simulation.add_wire(wire);
 		this.wires[id] = mesh;
 		return mesh;
 	}
@@ -104,7 +104,7 @@ export class Simulation {
 	}
 	public Switch(pos: Pos) {
 		const id = this.rust_simulation.add_switch(new Uint32Array(pos));
-		const mesh = this.scene.creator.Switch(pos);
+		const mesh = this.scene.creator.Switch(pos, id);
 		this.scene.add(mesh);
 		this.components[id] = mesh;
 	}

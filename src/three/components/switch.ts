@@ -12,9 +12,11 @@ export class Switch extends THREE.Group {
 	};
 	public pos: [number, number];
 	public state: boolean;
+	public comp_id: number;
 	constructor(
 		x: number,
 		y: number,
+		comp_id: number,
 		material: {
 			connector: THREE.MeshStandardMaterial;
 			switch: THREE.MeshStandardMaterial;
@@ -23,6 +25,7 @@ export class Switch extends THREE.Group {
 		},
 	) {
 		super();
+		this.comp_id = comp_id;
 		this.pos = [x, y];
 		this.material = material;
 		this.topMesh = this.createGate();

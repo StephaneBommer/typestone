@@ -96,8 +96,8 @@ export class ComponentsCreator {
 			topOff: this.material[MaterialType.GateOff],
 		});
 	}
-	public Switch([x, y]: Pos) {
-		return new Switch(x, y, {
+	public Switch([x, y]: Pos, comp_id: number) {
+		return new Switch(x, y, comp_id, {
 			connector: this.material[MaterialType.Connector],
 			switch: this.material[MaterialType.Switch],
 			topOn: this.material[MaterialType.SwitchOn],

@@ -14,12 +14,12 @@ impl Simulation {
         let wire_set_snapshot: Vec<_> = self.wire_set.iter().copied().collect();
 
         for wire_in_set in wire_set_snapshot {
-            if wire_in_set.0 == wire_index {
+            if wire_in_set == wire_index {
                 continue;
             }
 
             for pos in &wire_positions {
-                let matching_pos = self.wires[wire_in_set.0]
+                let matching_pos = self.wires[wire_in_set]
                     .positions
                     .iter()
                     .any(|pos_in_set| pos_in_set == pos);
@@ -33,22 +33,20 @@ impl Simulation {
                 }
 
                 self.wire_groups[wire_group_index]
-                    .add_wire(wire_in_set, self.wires[wire_in_set.0].positions.clone());
+                    .add_wire(wire_in_set, self.wires[wire_in_set].positions.clone());
                 self.wire_set.remove(&wire_in_set);
 
-                self.find_matching_wire(wire_in_set.0, wire_group_index);
+                self.find_matching_wire(wire_in_set, wire_group_index);
             }
         }
     }
 
     pub fn compute_connections(&mut self) {
         for wire in self.wires.iter() {
-            self.wire_set
-                .insert((wire.circuit_element.id, wire.circuit_element.tsid));
+            self.wire_set.insert(wire.circuit_element.id);
         }
 
-        let wires_to_map: Vec<(usize, usize)> =
-            self.wire_set.iter().map(|wire| wire.clone()).collect();
+        let wires_to_map: Vec<usize> = self.wire_set.iter().map(|wire| wire.clone()).collect();
 
         for wire in wires_to_map {
             if !self.wire_set.contains(&wire) {
@@ -57,11 +55,11 @@ impl Simulation {
             self.wire_set.remove(&wire);
 
             let mut wire_group = WireGroup::new(self.wire_groups.len());
-            wire_group.add_wire(wire, self.wires[wire.0].positions.clone());
+            wire_group.add_wire(wire, self.wires[wire].positions.clone());
 
             let wire_group_id = wire_group.circuit_element.id.clone();
             self.wire_groups.push(wire_group);
-            self.find_matching_wire(wire.0, wire_group_id);
+            self.find_matching_wire(wire, wire_group_id);
         }
 
         //

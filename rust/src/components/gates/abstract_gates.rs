@@ -9,9 +9,9 @@ pub struct TwoInputsGate {
 }
 
 impl TwoInputsGate {
-    pub fn new(id: usize, position: Position, tsid: usize) -> Self {
+    pub fn new(id: usize, position: Position) -> Self {
         TwoInputsGate {
-            circuit_element: CircuitElement::new(id, tsid),
+            circuit_element: CircuitElement::new(id),
             position,
             output_position: position,
             input_positions: [
@@ -30,9 +30,9 @@ pub struct OneInputGate {
 }
 
 impl OneInputGate {
-    pub fn new(id: usize, position: Position, tsid: usize) -> Self {
+    pub fn new(id: usize, position: Position) -> Self {
         OneInputGate {
-            circuit_element: CircuitElement::new(id, tsid),
+            circuit_element: CircuitElement::new(id),
             position,
             output_position: position,
             input_position: [position[0] - 5, position[1]],
