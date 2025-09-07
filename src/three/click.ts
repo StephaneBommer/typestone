@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import type { SimulationDb } from "../db/class";
-import { ElementTypes, type Pos } from "../utils/types";
+import { ComposantTypes, type Pos } from "../utils/types";
 import { type EditMode, EditModeEnum } from "./edit";
 import type { SimulationScene } from "./scene";
 import type { Simulation } from "./simulation";
@@ -64,49 +64,49 @@ export class GridClickHandler {
 			}
 			if (event.key === "&") {
 				this.editMode.setComponentEditMode(
-					ElementTypes.Switch,
+					ComposantTypes.Switch,
 					this.lastMousePos,
 				);
 			}
 			if (event.key === "é") {
 				this.editMode.setComponentEditMode(
-					ElementTypes.BufferGate,
+					ComposantTypes.BufferGate,
 					this.lastMousePos,
 				);
 			}
 			if (event.key === '"') {
 				this.editMode.setComponentEditMode(
-					ElementTypes.NotGate,
+					ComposantTypes.NotGate,
 					this.lastMousePos,
 				);
 			}
 			if (event.key === "'") {
 				this.editMode.setComponentEditMode(
-					ElementTypes.TimerGate,
+					ComposantTypes.TimerGate,
 					this.lastMousePos,
 				);
 			}
 			if (event.key === "(") {
 				this.editMode.setComponentEditMode(
-					ElementTypes.AndGate,
+					ComposantTypes.AndGate,
 					this.lastMousePos,
 				);
 			}
 			if (event.key === "§") {
 				this.editMode.setComponentEditMode(
-					ElementTypes.OrGate,
+					ComposantTypes.OrGate,
 					this.lastMousePos,
 				);
 			}
 			if (event.key === "è") {
 				this.editMode.setComponentEditMode(
-					ElementTypes.XorGate,
+					ComposantTypes.XorGate,
 					this.lastMousePos,
 				);
 			}
 			if (event.key === "!") {
 				this.editMode.setComponentEditMode(
-					ElementTypes.LatchGate,
+					ComposantTypes.LatchGate,
 					this.lastMousePos,
 				);
 			}

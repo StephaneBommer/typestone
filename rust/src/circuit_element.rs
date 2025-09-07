@@ -36,17 +36,33 @@ pub enum CircuitElementEnum {
 impl CircuitElementEnum {
     pub fn get_state(&self, sim: &Simulation) -> bool {
         match self {
-            CircuitElementEnum::WireGroup(id) => sim.wire_groups[*id].circuit_element.state,
-            CircuitElementEnum::Component(id) => match &sim.composants[*id] {
-                ComposantsEnum::OrGate(gate) => gate.gate.circuit_element.state,
-                ComposantsEnum::AndGate(gate) => gate.gate.circuit_element.state,
-                ComposantsEnum::Switch(switch) => switch.circuit_element.state,
-                ComposantsEnum::XorGate(gate) => gate.gate.circuit_element.state,
-                ComposantsEnum::LatchGate(gate) => gate.gate.circuit_element.state,
-                ComposantsEnum::NotGate(gate) => gate.gate.circuit_element.state,
-                ComposantsEnum::BufferGate(gate) => gate.gate.circuit_element.state,
-                ComposantsEnum::TimerGate(gate) => gate.gate.circuit_element.state,
-            },
+            CircuitElementEnum::WireGroup(id) => {
+                if let Some(group) = sim
+                    .wire_groups
+                    .iter()
+                    .find(|wg| wg.circuit_element.id == *id)
+                {
+                    group.circuit_element.state
+                } else {
+                    false
+                }
+            }
+            CircuitElementEnum::Component(id) => {
+                if let Some(composant) = sim.composants_map.get(id) {
+                    match composant {
+                        ComposantsEnum::OrGate(gate) => gate.gate.circuit_element.state,
+                        ComposantsEnum::AndGate(gate) => gate.gate.circuit_element.state,
+                        ComposantsEnum::Switch(switch) => switch.circuit_element.state,
+                        ComposantsEnum::XorGate(gate) => gate.gate.circuit_element.state,
+                        ComposantsEnum::LatchGate(gate) => gate.gate.circuit_element.state,
+                        ComposantsEnum::NotGate(gate) => gate.gate.circuit_element.state,
+                        ComposantsEnum::BufferGate(gate) => gate.gate.circuit_element.state,
+                        ComposantsEnum::TimerGate(gate) => gate.gate.circuit_element.state,
+                    }
+                } else {
+                    false
+                }
+            }
         }
     }
 }

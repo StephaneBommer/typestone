@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import {
-	ElementTypes,
+	ComposantTypes,
 	type Orientation,
 	type Pos,
 	type WirePos,
@@ -166,26 +166,26 @@ export class ComponentsCreator {
 	}
 
 	public createComponent(
-		type: ElementTypes,
+		type: ComposantTypes,
 		positions: Pos,
 		orientation: Orientation,
 	): Gate | Switch {
 		switch (type) {
-			case ElementTypes.AndGate:
+			case ComposantTypes.AndGate:
 				return this.AndGate(positions, orientation);
-			case ElementTypes.OrGate:
+			case ComposantTypes.OrGate:
 				return this.OrGate(positions, orientation);
-			case ElementTypes.XorGate:
+			case ComposantTypes.XorGate:
 				return this.XorGate(positions, orientation);
-			case ElementTypes.NotGate:
+			case ComposantTypes.NotGate:
 				return this.NotGate(positions, orientation);
-			case ElementTypes.BufferGate:
+			case ComposantTypes.BufferGate:
 				return this.BufferGate(positions, orientation);
-			case ElementTypes.LatchGate:
+			case ComposantTypes.LatchGate:
 				return this.Latch(positions, orientation);
-			case ElementTypes.TimerGate:
+			case ComposantTypes.TimerGate:
 				return this.Timer(positions, orientation);
-			case ElementTypes.Switch:
+			case ComposantTypes.Switch:
 				return this.Switch(positions, 1);
 			default:
 				throw new Error("Unknown component type");

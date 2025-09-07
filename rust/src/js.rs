@@ -26,7 +26,7 @@ impl TickResults {
             js_sys::Reflect::set(
                 &obj,
                 &JsValue::from_str("index"),
-                &JsValue::from_f64(e.index as f64),
+                &JsValue::from_f64(e.id as f64),
             )
             .unwrap();
             js_sys::Reflect::set(
@@ -54,7 +54,7 @@ impl TickResults {
 #[wasm_bindgen]
 impl ChangedElement {
     #[wasm_bindgen(constructor)]
-    pub fn new(index: usize, state: bool) -> Self {
-        ChangedElement { index, state }
+    pub fn new(id: usize, state: bool) -> Self {
+        ChangedElement { id, state }
     }
 }

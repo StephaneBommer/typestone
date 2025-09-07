@@ -22,7 +22,7 @@ impl Simulation {
             })
             .collect();
         let wire = Wire::new(id, positions_vec);
-        self.wires.push(wire);
+        self.wires_map.insert(id, wire);
         id
     }
 

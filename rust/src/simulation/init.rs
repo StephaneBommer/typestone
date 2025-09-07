@@ -9,7 +9,12 @@ use wasm_bindgen::prelude::*;
 #[wasm_bindgen]
 impl Simulation {
     fn find_matching_wire(&mut self, wire_index: usize, wire_group_index: usize) {
-        let wire_positions = self.wires[wire_index].positions.clone();
+        // Récupère les positions du wire de départ
+        let wire_positions = if let Some(w) = self.wires_map.get(&wire_index) {
+            w.positions.clone()
+        } else {
+            return; // Wire introuvable -> on sort
+        };
 
         let wire_set_snapshot: Vec<_> = self.wire_set.iter().copied().collect();
 
@@ -18,12 +23,18 @@ impl Simulation {
                 continue;
             }
 
-            for pos in &wire_positions {
-                let matching_pos = self.wires[wire_in_set]
-                    .positions
-                    .iter()
-                    .any(|pos_in_set| pos_in_set == pos);
+            // Extraire une copie des positions du wire candidat
+            let positions_opt = self
+                .wires_map
+                .get(&wire_in_set)
+                .map(|w| w.positions.clone());
+            if positions_opt.is_none() {
+                continue;
+            }
+            let candidate_positions = positions_opt.unwrap();
 
+            for pos in &wire_positions {
+                let matching_pos = candidate_positions.iter().any(|p| p == pos);
                 if !matching_pos {
                     continue;
                 }
@@ -32,8 +43,9 @@ impl Simulation {
                     continue;
                 }
 
+                // Ici plus aucun emprunt immuable → on peut muter
                 self.wire_groups[wire_group_index]
-                    .add_wire(wire_in_set, self.wires[wire_in_set].positions.clone());
+                    .add_wire(wire_in_set, candidate_positions.clone());
                 self.wire_set.remove(&wire_in_set);
 
                 self.find_matching_wire(wire_in_set, wire_group_index);
@@ -42,12 +54,14 @@ impl Simulation {
     }
 
     pub fn compute_connections(&mut self) {
-        for wire in self.wires.iter() {
+        // Remplir le set avec tous les wires
+        for wire in self.wires_map.values() {
             self.wire_set.insert(wire.circuit_element.id);
         }
 
-        let wires_to_map: Vec<usize> = self.wire_set.iter().map(|wire| wire.clone()).collect();
+        let wires_to_map: Vec<usize> = self.wire_set.iter().copied().collect();
 
+        // Construire les wire groups
         for wire in wires_to_map {
             if !self.wire_set.contains(&wire) {
                 continue;
@@ -55,281 +69,279 @@ impl Simulation {
             self.wire_set.remove(&wire);
 
             let mut wire_group = WireGroup::new(self.wire_groups.len());
-            wire_group.add_wire(wire, self.wires[wire].positions.clone());
 
-            let wire_group_id = wire_group.circuit_element.id.clone();
+            if let Some(w) = self.wires_map.get(&wire) {
+                wire_group.add_wire(wire, w.positions.clone());
+            }
+
+            let wire_group_id = wire_group.circuit_element.id;
             self.wire_groups.push(wire_group);
             self.find_matching_wire(wire, wire_group_id);
         }
 
         //
-        //find connections between wires and components
+        // Connecter les wires et les composants
         //
-
-        for (composant_index, composant) in self.composants.iter_mut().enumerate() {
+        for (composant_id, composant) in self.composants_map.iter_mut() {
             match composant {
                 ComposantsEnum::OrGate(or_gate) => {
-                    for (wire_group_index, wire) in self.wire_groups.iter_mut().enumerate() {
-                        for pos in wire.positions.iter() {
+                    for wire_group in self.wire_groups.iter_mut() {
+                        for pos in wire_group.positions.iter() {
                             if or_gate.gate.output_position == *pos {
                                 console_log(&format!(
-                                    "Connected (OR gate) gate output {} to wire {} ",
-                                    composant_index, wire_group_index
+                                    "Connected (OR gate) output {} to wire group {}",
+                                    composant_id, wire_group.circuit_element.id
                                 ));
-                                or_gate
-                                    .gate
+                                or_gate.gate.circuit_element.outputs.push(
+                                    CircuitElementEnum::WireGroup(wire_group.circuit_element.id),
+                                );
+                                wire_group
                                     .circuit_element
-                                    .outputs
-                                    .push(CircuitElementEnum::WireGroup(wire_group_index));
-                                wire.circuit_element
                                     .inputs
-                                    .push(CircuitElementEnum::Component(composant_index));
+                                    .push(CircuitElementEnum::Component(*composant_id));
                             }
-
                             for input_pos in or_gate.gate.input_positions.iter() {
                                 if *input_pos == *pos {
                                     console_log(&format!(
-                                        "Connected (OR gate) gate input {} to wire {} ",
-                                        composant_index, wire_group_index
+                                        "Connected (OR gate) input {} to wire group {}",
+                                        composant_id, wire_group.circuit_element.id
                                     ));
-                                    or_gate
-                                        .gate
+                                    or_gate.gate.circuit_element.inputs.push(
+                                        CircuitElementEnum::WireGroup(
+                                            wire_group.circuit_element.id,
+                                        ),
+                                    );
+                                    wire_group
                                         .circuit_element
-                                        .inputs
-                                        .push(CircuitElementEnum::WireGroup(wire_group_index));
-                                    wire.circuit_element
                                         .outputs
-                                        .push(CircuitElementEnum::Component(composant_index));
+                                        .push(CircuitElementEnum::Component(*composant_id));
                                 }
                             }
                         }
                     }
                 }
                 ComposantsEnum::AndGate(and_gate) => {
-                    for (wire_group_index, wire) in self.wire_groups.iter_mut().enumerate() {
-                        for pos in wire.positions.iter() {
+                    for wire_group in self.wire_groups.iter_mut() {
+                        for pos in wire_group.positions.iter() {
                             if and_gate.gate.output_position == *pos {
                                 console_log(&format!(
-                                    "Connected gate output (AND gate) {} to wire group {}",
-                                    composant_index, wire_group_index
+                                    "Connected (AND gate) output {} to wire group {}",
+                                    composant_id, wire_group.circuit_element.id
                                 ));
-                                and_gate
-                                    .gate
+                                and_gate.gate.circuit_element.outputs.push(
+                                    CircuitElementEnum::WireGroup(wire_group.circuit_element.id),
+                                );
+                                wire_group
                                     .circuit_element
-                                    .outputs
-                                    .push(CircuitElementEnum::WireGroup(wire_group_index));
-                                wire.circuit_element
                                     .inputs
-                                    .push(CircuitElementEnum::Component(composant_index));
+                                    .push(CircuitElementEnum::Component(*composant_id));
                             }
                             for input_pos in and_gate.gate.input_positions.iter() {
                                 if *input_pos == *pos {
                                     console_log(&format!(
-                                        "Connected gate input (AND gate) {} to wire group {}",
-                                        composant_index, wire_group_index
+                                        "Connected (AND gate) input {} to wire group {}",
+                                        composant_id, wire_group.circuit_element.id
                                     ));
-                                    and_gate
-                                        .gate
+                                    and_gate.gate.circuit_element.inputs.push(
+                                        CircuitElementEnum::WireGroup(
+                                            wire_group.circuit_element.id,
+                                        ),
+                                    );
+                                    wire_group
                                         .circuit_element
-                                        .inputs
-                                        .push(CircuitElementEnum::WireGroup(wire_group_index));
-                                    wire.circuit_element
                                         .outputs
-                                        .push(CircuitElementEnum::Component(composant_index));
+                                        .push(CircuitElementEnum::Component(*composant_id));
                                 }
                             }
                         }
                     }
                 }
                 ComposantsEnum::XorGate(xor_gate) => {
-                    for (wire_group_index, wire) in self.wire_groups.iter_mut().enumerate() {
-                        for pos in wire.positions.iter() {
+                    for wire_group in self.wire_groups.iter_mut() {
+                        for pos in wire_group.positions.iter() {
                             if xor_gate.gate.output_position == *pos {
                                 console_log(&format!(
-                                    "Connected gate output (XOR gate) {} to wire group {}",
-                                    composant_index, wire_group_index
+                                    "Connected (XOR gate) output {} to wire group {}",
+                                    composant_id, wire_group.circuit_element.id
                                 ));
-                                xor_gate
-                                    .gate
+                                xor_gate.gate.circuit_element.outputs.push(
+                                    CircuitElementEnum::WireGroup(wire_group.circuit_element.id),
+                                );
+                                wire_group
                                     .circuit_element
-                                    .outputs
-                                    .push(CircuitElementEnum::WireGroup(wire_group_index));
-                                wire.circuit_element
                                     .inputs
-                                    .push(CircuitElementEnum::Component(composant_index));
+                                    .push(CircuitElementEnum::Component(*composant_id));
                             }
                             for input_pos in xor_gate.gate.input_positions.iter() {
                                 if *input_pos == *pos {
                                     console_log(&format!(
-                                        "Connected gate input (XOR gate) {} to wire group {}",
-                                        composant_index, wire_group_index
+                                        "Connected (XOR gate) input {} to wire group {}",
+                                        composant_id, wire_group.circuit_element.id
                                     ));
-                                    xor_gate
-                                        .gate
+                                    xor_gate.gate.circuit_element.inputs.push(
+                                        CircuitElementEnum::WireGroup(
+                                            wire_group.circuit_element.id,
+                                        ),
+                                    );
+                                    wire_group
                                         .circuit_element
-                                        .inputs
-                                        .push(CircuitElementEnum::WireGroup(wire_group_index));
-                                    wire.circuit_element
                                         .outputs
-                                        .push(CircuitElementEnum::Component(composant_index));
+                                        .push(CircuitElementEnum::Component(*composant_id));
                                 }
                             }
                         }
                     }
                 }
                 ComposantsEnum::LatchGate(latch_gate) => {
-                    for (wire_group_index, wire) in self.wire_groups.iter_mut().enumerate() {
-                        for pos in wire.positions.iter() {
+                    for wire_group in self.wire_groups.iter_mut() {
+                        for pos in wire_group.positions.iter() {
                             if latch_gate.gate.output_position == *pos {
                                 console_log(&format!(
-                                    "Connected gate output (Latch gate) {} to wire group {}",
-                                    composant_index, wire_group_index
+                                    "Connected (Latch gate) output {} to wire group {}",
+                                    composant_id, wire_group.circuit_element.id
                                 ));
-                                latch_gate
-                                    .gate
+                                latch_gate.gate.circuit_element.outputs.push(
+                                    CircuitElementEnum::WireGroup(wire_group.circuit_element.id),
+                                );
+                                wire_group
                                     .circuit_element
-                                    .outputs
-                                    .push(CircuitElementEnum::WireGroup(wire_group_index));
-                                wire.circuit_element
                                     .inputs
-                                    .push(CircuitElementEnum::Component(composant_index));
+                                    .push(CircuitElementEnum::Component(*composant_id));
                             }
                             for input_pos in latch_gate.gate.input_positions.iter() {
                                 if *input_pos == *pos {
                                     console_log(&format!(
-                                        "Connected gate input (Latch gate) {} to wire group {}",
-                                        composant_index, wire_group_index
+                                        "Connected (Latch gate) input {} to wire group {}",
+                                        composant_id, wire_group.circuit_element.id
                                     ));
-                                    latch_gate
-                                        .gate
+                                    latch_gate.gate.circuit_element.inputs.push(
+                                        CircuitElementEnum::WireGroup(
+                                            wire_group.circuit_element.id,
+                                        ),
+                                    );
+                                    wire_group
                                         .circuit_element
-                                        .inputs
-                                        .push(CircuitElementEnum::WireGroup(wire_group_index));
-                                    wire.circuit_element
                                         .outputs
-                                        .push(CircuitElementEnum::Component(composant_index));
+                                        .push(CircuitElementEnum::Component(*composant_id));
                                 }
                             }
                         }
                     }
                 }
                 ComposantsEnum::BufferGate(buffer_gate) => {
-                    for (wire_group_index, wire) in self.wire_groups.iter_mut().enumerate() {
-                        for pos in wire.positions.iter() {
+                    for wire_group in self.wire_groups.iter_mut() {
+                        for pos in wire_group.positions.iter() {
                             if buffer_gate.gate.output_position == *pos {
                                 console_log(&format!(
-                                    "Connected gate output (Buffer gate) {} to wire group {}",
-                                    composant_index, wire_group_index
+                                    "Connected (Buffer gate) output {} to wire group {}",
+                                    composant_id, wire_group.circuit_element.id
                                 ));
-                                buffer_gate
-                                    .gate
+                                buffer_gate.gate.circuit_element.outputs.push(
+                                    CircuitElementEnum::WireGroup(wire_group.circuit_element.id),
+                                );
+                                wire_group
                                     .circuit_element
-                                    .outputs
-                                    .push(CircuitElementEnum::WireGroup(wire_group_index));
-                                wire.circuit_element
                                     .inputs
-                                    .push(CircuitElementEnum::Component(composant_index));
+                                    .push(CircuitElementEnum::Component(*composant_id));
                             }
                             if buffer_gate.gate.input_position == *pos {
                                 console_log(&format!(
-                                    "Connected gate input (Buffer gate) {} to wire group {}",
-                                    composant_index, wire_group_index
+                                    "Connected (Buffer gate) input {} to wire group {}",
+                                    composant_id, wire_group.circuit_element.id
                                 ));
-                                buffer_gate
-                                    .gate
+                                buffer_gate.gate.circuit_element.inputs.push(
+                                    CircuitElementEnum::WireGroup(wire_group.circuit_element.id),
+                                );
+                                wire_group
                                     .circuit_element
-                                    .inputs
-                                    .push(CircuitElementEnum::WireGroup(wire_group_index));
-                                wire.circuit_element
                                     .outputs
-                                    .push(CircuitElementEnum::Component(composant_index));
+                                    .push(CircuitElementEnum::Component(*composant_id));
                             }
                         }
                     }
                 }
                 ComposantsEnum::TimerGate(timer_gate) => {
-                    for (wire_group_index, wire) in self.wire_groups.iter_mut().enumerate() {
-                        for pos in wire.positions.iter() {
+                    for wire_group in self.wire_groups.iter_mut() {
+                        for pos in wire_group.positions.iter() {
                             if timer_gate.gate.output_position == *pos {
                                 console_log(&format!(
-                                    "Connected gate output (Timer gate) {} to wire group {}",
-                                    composant_index, wire_group_index
+                                    "Connected (Timer gate) output {} to wire group {}",
+                                    composant_id, wire_group.circuit_element.id
                                 ));
-                                timer_gate
-                                    .gate
+                                timer_gate.gate.circuit_element.outputs.push(
+                                    CircuitElementEnum::WireGroup(wire_group.circuit_element.id),
+                                );
+                                wire_group
                                     .circuit_element
-                                    .outputs
-                                    .push(CircuitElementEnum::WireGroup(wire_group_index));
-                                wire.circuit_element
                                     .inputs
-                                    .push(CircuitElementEnum::Component(composant_index));
+                                    .push(CircuitElementEnum::Component(*composant_id));
                             }
                             if timer_gate.gate.input_position == *pos {
                                 console_log(&format!(
-                                    "Connected gate input (Timer gate) {} to wire group {}",
-                                    composant_index, wire_group_index
+                                    "Connected (Timer gate) input {} to wire group {}",
+                                    composant_id, wire_group.circuit_element.id
                                 ));
-                                timer_gate
-                                    .gate
+                                timer_gate.gate.circuit_element.inputs.push(
+                                    CircuitElementEnum::WireGroup(wire_group.circuit_element.id),
+                                );
+                                wire_group
                                     .circuit_element
-                                    .inputs
-                                    .push(CircuitElementEnum::WireGroup(wire_group_index));
-                                wire.circuit_element
                                     .outputs
-                                    .push(CircuitElementEnum::Component(composant_index));
+                                    .push(CircuitElementEnum::Component(*composant_id));
                             }
                         }
                     }
                 }
                 ComposantsEnum::NotGate(not_gate) => {
-                    for (wire_group_index, wire) in self.wire_groups.iter_mut().enumerate() {
-                        for pos in wire.positions.iter() {
+                    for wire_group in self.wire_groups.iter_mut() {
+                        for pos in wire_group.positions.iter() {
                             if not_gate.gate.output_position == *pos {
                                 console_log(&format!(
-                                    "Connected gate output (Not gate) {} to wire group {}",
-                                    composant_index, wire_group_index
+                                    "Connected (Not gate) output {} to wire group {}",
+                                    composant_id, wire_group.circuit_element.id
                                 ));
-                                not_gate
-                                    .gate
+                                not_gate.gate.circuit_element.outputs.push(
+                                    CircuitElementEnum::WireGroup(wire_group.circuit_element.id),
+                                );
+                                wire_group
                                     .circuit_element
-                                    .outputs
-                                    .push(CircuitElementEnum::WireGroup(wire_group_index));
-                                wire.circuit_element
                                     .inputs
-                                    .push(CircuitElementEnum::Component(composant_index));
+                                    .push(CircuitElementEnum::Component(*composant_id));
                             }
                             if not_gate.gate.input_position == *pos {
                                 console_log(&format!(
-                                    "Connected gate input (Not gate) {} to wire group {}",
-                                    composant_index, wire_group_index
+                                    "Connected (Not gate) input {} to wire group {}",
+                                    composant_id, wire_group.circuit_element.id
                                 ));
-                                not_gate
-                                    .gate
+                                not_gate.gate.circuit_element.inputs.push(
+                                    CircuitElementEnum::WireGroup(wire_group.circuit_element.id),
+                                );
+                                wire_group
                                     .circuit_element
-                                    .inputs
-                                    .push(CircuitElementEnum::WireGroup(wire_group_index));
-                                wire.circuit_element
                                     .outputs
-                                    .push(CircuitElementEnum::Component(composant_index));
+                                    .push(CircuitElementEnum::Component(*composant_id));
                             }
                         }
                     }
                 }
                 ComposantsEnum::Switch(switch) => {
-                    for (wire_group_index, wire) in self.wire_groups.iter_mut().enumerate() {
-                        for pos in wire.positions.iter() {
+                    for wire_group in self.wire_groups.iter_mut() {
+                        for pos in wire_group.positions.iter() {
                             if switch.output_position == *pos {
                                 console_log(&format!(
-                                    "Connected gate {} to wire group {} (switch)",
-                                    composant_index, wire_group_index
+                                    "Connected (Switch) {} to wire group {}",
+                                    composant_id, wire_group.circuit_element.id
                                 ));
                                 switch
                                     .circuit_element
                                     .outputs
-                                    .push(CircuitElementEnum::WireGroup(wire_group_index));
-                                wire.circuit_element
+                                    .push(CircuitElementEnum::WireGroup(
+                                        wire_group.circuit_element.id,
+                                    ));
+                                wire_group
+                                    .circuit_element
                                     .inputs
-                                    .push(CircuitElementEnum::Component(composant_index));
+                                    .push(CircuitElementEnum::Component(*composant_id));
                             }
                         }
                     }

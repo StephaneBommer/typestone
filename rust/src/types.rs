@@ -16,12 +16,12 @@ pub struct OldWireGroup {
 }
 
 pub struct OldComponents {
-    pub index: usize,
+    pub id: usize,
     pub state: bool,
 }
 
 #[wasm_bindgen]
 pub struct ChangedElement {
-    pub index: usize,
+    pub id: usize,
     pub state: bool,
 }

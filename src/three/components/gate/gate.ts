@@ -16,6 +16,7 @@ export abstract class Gate extends THREE.Group {
 	public state: boolean;
 	public orientation: Orientation;
 	public isDeteling = false;
+	private originalMaterials = new Map<THREE.Object3D, THREE.Material>();
 
 	constructor(
 		x: number,
@@ -47,12 +48,25 @@ export abstract class Gate extends THREE.Group {
 
 	public setDeleting(isDeleting: boolean) {
 		this.isDeteling = isDeleting;
-
 		this.traverse((child) => {
 			if (child instanceof THREE.Mesh) {
-				child.material = this.material.delete;
+				if (isDeleting) {
+					if (!this.originalMaterials.has(child)) {
+						this.originalMaterials.set(child, child.material);
+					}
+					child.material = this.material.delete;
+				} else {
+					const orig = this.originalMaterials.get(child);
+					if (orig) {
+						child.material = orig;
+					}
+				}
 			}
 		});
+
+		if (!isDeleting) {
+			this.originalMaterials.clear();
+		}
 	}
 
 	protected abstract createInputs(): void;

@@ -3,7 +3,7 @@ import { CSG } from "three-csg-ts";
 import { SIZE } from "../utils/const";
 import { skewBoxGeometry } from "./skew";
 
-export class WireMesh extends THREE.Mesh {
+export class WireMesh extends THREE.Group {
 	public state: boolean;
 	private materialOn: THREE.Material;
 	private materialOff: THREE.Material;
@@ -17,19 +17,31 @@ export class WireMesh extends THREE.Mesh {
 		this.state = false;
 		this.materialOn = materialOn;
 		this.materialOff = materialOff;
-		this.material = this.state ? this.materialOn : this.materialOff;
+		this.children.forEach((child) => {
+			if (child instanceof THREE.Mesh) {
+				child.material = this.state ? this.materialOn : this.materialOff;
+			}
+		});
 	}
 
 	public setState(state: boolean) {
 		this.state = state;
-		this.material = state ? this.materialOn : this.materialOff;
+		this.children.forEach((child) => {
+			if (child instanceof THREE.Mesh) {
+				child.material = this.state ? this.materialOn : this.materialOff;
+			}
+		});
 	}
 
 	private createGeometry(path: number[][]): void {
 		const pairs = this.groupPointsIntoPairs(path);
 
 		const linesGeometries = pairs.map(
-			(pair) => new THREE.Mesh(this.createLine(pair), this.material),
+			(pair) =>
+				new THREE.Mesh(
+					this.createLine(pair),
+					this.state ? this.materialOn : this.materialOff,
+				),
 		);
 
 		if (linesGeometries.length === 0) return;
@@ -45,7 +57,26 @@ export class WireMesh extends THREE.Mesh {
 
 		const unionGeometry = CSG.toGeometry(unionCSG, linesGeometries[0].matrix);
 
-		this.geometry = unionGeometry;
+		this.add(
+			new THREE.Mesh(
+				unionGeometry,
+				this.state ? this.materialOn : this.materialOff,
+			),
+		);
+		path.map((p, index) => {
+			if (index === 0 || index === path.length - 1) return;
+
+			const lastPath = path[index - 1];
+			const nextPath = path[index + 1];
+
+			if (
+				(lastPath[1] !== p[1] || nextPath[1] !== p[1]) &&
+				(lastPath[0] !== p[0] || nextPath[0] !== p[0])
+			)
+				return;
+
+			this.add(new THREE.Mesh(this.createLine([p, p]), this.materialOn));
+		});
 
 		linesGeometries.forEach((mesh) => {
 			mesh.geometry.dispose();

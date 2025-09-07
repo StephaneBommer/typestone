@@ -6,19 +6,8 @@ import {
 	RenderPass,
 	UnrealBloomPass,
 } from "three/examples/jsm/Addons.js";
-import type {
-	GetAndGates,
-	GetBufferGates,
-	GetLatches,
-	GetNotGates,
-	GetOrGates,
-	GetSwitch,
-	GetTimer,
-	GetWires,
-	GetXorGates,
-	getAllComponents,
-} from "../db/type";
-import { ElementTypes } from "../utils/types";
+import type { GetComponents, GetWires, getAllComponents } from "../db/type";
+import { ComposantTypes, ElementTypes } from "../utils/types";
 import { ComponentsCreator } from "./components/creator";
 import type { OneInputGate } from "./components/gate/oneInputGate";
 import type { TwoInputsGate } from "./components/gate/twoInputsGate";
@@ -224,98 +213,109 @@ export class SimulationScene extends THREE.Scene {
 	};
 
 	public addWires(wires: GetWires) {
-		wires.forEach((wire) => {
-			const mesh = this.creator.Wire(wire.positions);
+		wires.forEach(({ value, key }) => {
+			const mesh = this.creator.Wire(value.positions);
 			this.add(mesh);
-			this.components.wires[wire.id] = mesh;
+			this.components.wires[key] = mesh;
 		});
 	}
 
-	public addAndGate(andGates: GetAndGates) {
-		andGates.forEach((gate) => {
-			const mesh = this.creator.AndGate(gate.positions, gate.orientation);
+	public addAndGate(andGates: GetComponents) {
+		andGates.forEach(({ value, key }) => {
+			const mesh = this.creator.AndGate(value.positions, value.orientation);
 			this.add(mesh);
-			this.components.andGates[gate.id] = mesh;
+			this.components.andGates[key] = mesh;
 		});
 	}
 
-	public addOrGate(orGates: GetOrGates) {
-		orGates.forEach((gate) => {
-			const mesh = this.creator.OrGate(gate.positions, gate.orientation);
+	public addOrGate(orGates: GetComponents) {
+		orGates.forEach(({ value, key }) => {
+			const mesh = this.creator.OrGate(value.positions, value.orientation);
 			this.add(mesh);
-			this.components.orGates[gate.id] = mesh;
+			this.components.orGates[key] = mesh;
 		});
 	}
 
-	public addXorGate(xorGates: GetXorGates) {
-		xorGates.forEach((gate) => {
-			const mesh = this.creator.XorGate(gate.positions, gate.orientation);
+	public addXorGate(xorGates: GetComponents) {
+		xorGates.forEach(({ value, key }) => {
+			const mesh = this.creator.XorGate(value.positions, value.orientation);
 			this.add(mesh);
-			this.components.xorGates[gate.id] = mesh;
+			this.components.xorGates[key] = mesh;
 		});
 	}
 
-	public addNotGate(notGates: GetNotGates) {
-		notGates.forEach((gate) => {
-			const mesh = this.creator.NotGate(gate.positions, gate.orientation);
+	public addNotGate(notGates: GetComponents) {
+		notGates.forEach(({ value, key }) => {
+			const mesh = this.creator.NotGate(value.positions, value.orientation);
 			this.add(mesh);
-			this.components.notGates[gate.id] = mesh;
+			this.components.notGates[key] = mesh;
 		});
 	}
 
-	public addBufferGate(bufferGates: GetBufferGates) {
-		bufferGates.forEach((gate) => {
-			const mesh = this.creator.BufferGate(gate.positions, gate.orientation);
+	public addBufferGate(bufferGates: GetComponents) {
+		bufferGates.forEach(({ value, key }) => {
+			const mesh = this.creator.BufferGate(value.positions, value.orientation);
 			this.add(mesh);
-			this.components.bufferGates[gate.id] = mesh;
+			this.components.bufferGates[key] = mesh;
 		});
 	}
 
-	public addLatches(latches: GetLatches) {
-		latches.forEach((gate) => {
-			const mesh = this.creator.Latch(gate.positions, gate.orientation);
+	public addLatches(latches: GetComponents) {
+		latches.forEach(({ value, key }) => {
+			const mesh = this.creator.Latch(value.positions, value.orientation);
 			this.add(mesh);
-			this.components.latches[gate.id] = mesh;
+			this.components.latches[key] = mesh;
 		});
 	}
 
-	public addTimer(timer: GetTimer) {
-		timer.forEach((gate) => {
-			const mesh = this.creator.Timer(gate.positions, gate.orientation);
+	public addTimer(timer: GetComponents) {
+		timer.forEach(({ value, key }) => {
+			const mesh = this.creator.Timer(value.positions, value.orientation);
 			this.add(mesh);
-			this.components.timer[gate.id] = mesh;
+			this.components.timer[key] = mesh;
 		});
 	}
 
-	public addSwitch(switches: GetSwitch) {
-		switches.forEach((gate) => {
-			const mesh = this.creator.Switch(gate.positions, gate.id);
+	public addSwitch(switches: GetComponents) {
+		switches.forEach(({ value, key }) => {
+			const mesh = this.creator.Switch(value.positions, key);
 			this.add(mesh);
-			this.components.switches[gate.id] = mesh;
+			this.components.switches[key] = mesh;
 		});
 	}
 
 	public addComponents(dbComponents: getAllComponents) {
-		const {
-			[ElementTypes.Wire]: wires,
-			[ElementTypes.AndGate]: and_gates,
-			[ElementTypes.OrGate]: or_gates,
-			[ElementTypes.XorGate]: xor_gates,
-			[ElementTypes.NotGate]: not_gates,
-			[ElementTypes.BufferGate]: buffer_gates,
-			[ElementTypes.LatchGate]: latches,
-			[ElementTypes.TimerGate]: timer,
-			[ElementTypes.Switch]: switches,
-		} = dbComponents;
+		const { [ElementTypes.Wire]: wires, [ElementTypes.Component]: components } =
+			dbComponents;
 		this.addWires(wires);
-		this.addAndGate(and_gates);
-		this.addOrGate(or_gates);
-		this.addXorGate(xor_gates);
-		this.addNotGate(not_gates);
-		this.addBufferGate(buffer_gates);
-		this.addLatches(latches);
-		this.addTimer(timer);
-		this.addSwitch(switches);
+		components.forEach((component) => {
+			switch (component.value.type) {
+				case ComposantTypes.AndGate:
+					this.addAndGate([component]);
+					break;
+				case ComposantTypes.OrGate:
+					this.addOrGate([component]);
+					break;
+				case ComposantTypes.XorGate:
+					this.addXorGate([component]);
+					break;
+				case ComposantTypes.NotGate:
+					this.addNotGate([component]);
+					break;
+				case ComposantTypes.BufferGate:
+					this.addBufferGate([component]);
+					break;
+				case ComposantTypes.LatchGate:
+					this.addLatches([component]);
+					break;
+				case ComposantTypes.TimerGate:
+					this.addTimer([component]);
+					break;
+				case ComposantTypes.Switch:
+					this.addSwitch([component]);
+					break;
+			}
+		});
 	}
 
 	public resetScene() {

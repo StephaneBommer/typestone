@@ -30,7 +30,8 @@ pub enum ComposantsEnum {
 pub struct Simulation {
     // composants: Vec<ComposantsEnum>,
     composants_map: HashMap<usize, ComposantsEnum>,
-    wires: Vec<Wire>,
+    // wires: Vec<Wire>,
+    wires_map: HashMap<usize, Wire>,
     wire_set: HashSet<usize>,
     wire_groups: Vec<WireGroup>,
     tick_counter: u32,
@@ -42,7 +43,8 @@ impl Simulation {
         Simulation {
             // composants: Vec::new(),
             composants_map: HashMap::new(),
-            wires: Vec::new(),
+            // wires: Vec::new(),
+            wires_map: HashMap::new(),
             wire_set: HashSet::new(),
             wire_groups: Vec::new(),
             tick_counter: 0,
@@ -154,35 +156,35 @@ impl Simulation {
             .values()
             .map(|composant| match composant {
                 ComposantsEnum::OrGate(or_gate) => OldComponents {
-                    index: or_gate.gate.circuit_element.id,
+                    id: or_gate.gate.circuit_element.id,
                     state: or_gate.gate.circuit_element.state,
                 },
                 ComposantsEnum::AndGate(and_gate) => OldComponents {
-                    index: and_gate.gate.circuit_element.id,
+                    id: and_gate.gate.circuit_element.id,
                     state: and_gate.gate.circuit_element.state,
                 },
                 ComposantsEnum::XorGate(xor_gate) => OldComponents {
-                    index: xor_gate.gate.circuit_element.id,
+                    id: xor_gate.gate.circuit_element.id,
                     state: xor_gate.gate.circuit_element.state,
                 },
                 ComposantsEnum::NotGate(not_gate) => OldComponents {
-                    index: not_gate.gate.circuit_element.id,
+                    id: not_gate.gate.circuit_element.id,
                     state: not_gate.gate.circuit_element.state,
                 },
                 ComposantsEnum::BufferGate(buffer_gate) => OldComponents {
-                    index: buffer_gate.gate.circuit_element.id,
+                    id: buffer_gate.gate.circuit_element.id,
                     state: buffer_gate.gate.circuit_element.state,
                 },
                 ComposantsEnum::LatchGate(latch_gate) => OldComponents {
-                    index: latch_gate.gate.circuit_element.id,
+                    id: latch_gate.gate.circuit_element.id,
                     state: latch_gate.gate.circuit_element.state,
                 },
                 ComposantsEnum::TimerGate(timer_gate) => OldComponents {
-                    index: timer_gate.gate.circuit_element.id,
+                    id: timer_gate.gate.circuit_element.id,
                     state: timer_gate.gate.circuit_element.state,
                 },
                 ComposantsEnum::Switch(switch) => OldComponents {
-                    index: switch.circuit_element.id,
+                    id: switch.circuit_element.id,
                     state: switch.circuit_element.state,
                 },
             })
@@ -223,7 +225,7 @@ impl Simulation {
         changed_wires_groups
             .iter()
             .flat_map(|changed_wire_group| {
-                let wire_group = &self.wire_groups[changed_wire_group.index];
+                let wire_group = &self.wire_groups[changed_wire_group.id];
                 let state = wire_group.circuit_element.state;
 
                 wire_group
@@ -274,7 +276,7 @@ impl Simulation {
                         (switch.circuit_element.id, switch.circuit_element.state)
                     }
                 };
-                if let Some(old_component) = old_components.iter().find(|c| c.index == id) {
+                if let Some(old_component) = old_components.iter().find(|c| c.id == id) {
                     if new_state != old_component.state {
                         return Some(ChangedElement::new(id, new_state));
                     }
@@ -337,7 +339,7 @@ impl Simulation {
 
     pub fn reset(&mut self) {
         self.composants_map.clear();
-        self.wires.clear();
+        self.wires_map.clear();
         self.wire_set.clear();
         self.wire_groups.clear();
         self.tick_counter = 0;

@@ -8,6 +8,10 @@ export type WirePos = Pos[];
 
 export enum ElementTypes {
 	Wire = "Wire",
+	Component = "Component",
+}
+
+export enum ComposantTypes {
 	Switch = "Switch",
 	BufferGate = "BufferGate",
 	NotGate = "NotGate",

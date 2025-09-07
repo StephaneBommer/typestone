@@ -1,6 +1,6 @@
 import type { SimulationDb } from "../db/class";
 import {
-	ElementTypes,
+	ComposantTypes,
 	Orientation,
 	type Pos,
 	type WirePos,
@@ -21,7 +21,7 @@ export enum EditModeEnum {
 export class EditMode {
 	private db: SimulationDb;
 	private mode: EditModeEnum = EditModeEnum.Wire;
-	private componentMode: ElementTypes = ElementTypes.BufferGate;
+	private componentMode: ComposantTypes = ComposantTypes.BufferGate;
 	private scene: SimulationScene;
 	public editing = false;
 	private wire: WireMesh | null = null;
@@ -31,7 +31,10 @@ export class EditMode {
 	private orientation: Orientation = Orientation.Right;
 	private stopEditingCallbacks: (() => void)[] = [];
 	private simulation: Simulation;
-
+	private componentDeleting: {
+		mesh: Gate | Switch;
+		id: number;
+	} | null = null;
 	constructor(
 		scene: SimulationScene,
 		db: SimulationDb,
@@ -74,8 +77,19 @@ export class EditMode {
 				this.componentMode,
 				[x, y],
 				this.orientation,
-				this.componentMode === ElementTypes.TimerGate ? 100 : undefined,
+				this.componentMode === ComposantTypes.TimerGate ? 100 : undefined,
 			);
+		}
+		if (this.mode === EditModeEnum.Delete) {
+			const obj = await this.db.getElementFromPosition([x, y]);
+			if (!obj) return;
+
+			if (this.componentDeleting) {
+				this.scene.remove(this.componentDeleting.mesh);
+				this.db.deleteComponent(this.componentDeleting.id);
+				this.componentDeleting.mesh.clear();
+				this.componentDeleting = null;
+			}
 		}
 	}
 
@@ -132,9 +146,21 @@ export class EditMode {
 		if (this.mode === EditModeEnum.Delete) {
 			const obj = await this.db.getElementFromPosition([x, y]);
 
+			if (
+				this.componentDeleting &&
+				((obj && obj.id !== this.componentDeleting.id) || !obj)
+			) {
+				this.componentDeleting.mesh.setDeleting(false);
+				this.componentDeleting = null;
+			}
+
 			if (!obj) return;
 
-			this.simulation.components[obj.id].setDeleting(true);
+			this.componentDeleting = {
+				mesh: this.simulation.components[obj.id],
+				id: obj.id,
+			};
+			this.componentDeleting.mesh.setDeleting(true);
 		}
 	}
 
@@ -196,7 +222,7 @@ export class EditMode {
 		this.mode = mode;
 	}
 
-	public setComponentEditMode(mode: ElementTypes, pos: Pos | null) {
+	public setComponentEditMode(mode: ComposantTypes, pos: Pos | null) {
 		this.escape();
 		this.startEditing(EditModeEnum.Component);
 		this.componentMode = mode;
