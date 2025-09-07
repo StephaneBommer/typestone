@@ -13,27 +13,6 @@ import { Switch } from "./components/switch";
 import type { SimulationScene } from "./scene";
 import type { WireMesh } from "./wire";
 
-enum MaterialType {
-	WireOff = "WireOff",
-	WireOn = "WireOn",
-	// gates
-	AndGate = "AndGate",
-	OrGate = "OrGate",
-	XorGate = "XorGate",
-	NotGate = "NotGate",
-	BufferGate = "BufferGate",
-	LatchGate = "LatchGate",
-	TimerGate = "TimerGate",
-	GateOn = "GateOn",
-	GateOff = "GateOff",
-	// connectors
-	Connector = "Connector",
-	// Switch
-	SwitchOn = "SwitchOn",
-	SwitchOff = "SwitchOff",
-	Switch = "Switch",
-}
-
 type ComponentMesh = TwoInputsGate | OneInputGate | Switch;
 
 export class Simulation {
