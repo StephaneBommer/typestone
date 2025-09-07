@@ -42,6 +42,23 @@ export class SimulationDb {
 		};
 	}
 
+	public async addComponent(
+		type: ElementTypes,
+		positions: GetAndGates[number]["positions"],
+		orientation: GetAndGates[number]["orientation"],
+		ticks?: number,
+	) {
+		const component = await this.db.add(type, {
+			positions,
+			orientation,
+			...(ticks !== undefined ? { ticks } : {}),
+		});
+		return {
+			id: component,
+			positions,
+		};
+	}
+
 	public async getWires(): Promise<GetWires> {
 		const wires = await this.db.getAll(ElementTypes.Wire);
 		const keys = await this.db.getAllKeys(ElementTypes.Wire);
@@ -56,6 +73,7 @@ export class SimulationDb {
 		return and_gates.map((value, index) => ({
 			id: keys[index],
 			positions: value.positions,
+			orientation: value.orientation,
 		}));
 	}
 	public async getOrGates(): Promise<GetOrGates> {
@@ -64,6 +82,7 @@ export class SimulationDb {
 		return or_gates.map((value, index) => ({
 			id: keys[index],
 			positions: value.positions,
+			orientation: value.orientation,
 		}));
 	}
 	public async getXorGates(): Promise<GetXorGates> {
@@ -72,6 +91,7 @@ export class SimulationDb {
 		return xor_gates.map((value, index) => ({
 			id: keys[index],
 			positions: value.positions,
+			orientation: value.orientation,
 		}));
 	}
 	public async getNotGates(): Promise<GetNotGates> {
@@ -80,6 +100,7 @@ export class SimulationDb {
 		return not_gates.map((value, index) => ({
 			id: keys[index],
 			positions: value.positions,
+			orientation: value.orientation,
 		}));
 	}
 	public async getBufferGates(): Promise<GetBufferGates> {
@@ -88,6 +109,7 @@ export class SimulationDb {
 		return buffer_gates.map((value, index) => ({
 			id: keys[index],
 			positions: value.positions,
+			orientation: value.orientation,
 		}));
 	}
 	public async getLatches(): Promise<GetLatches> {
@@ -96,6 +118,7 @@ export class SimulationDb {
 		return latches.map((value, index) => ({
 			id: keys[index],
 			positions: value.positions,
+			orientation: value.orientation,
 		}));
 	}
 	public async getTimer(): Promise<GetTimer> {
@@ -105,6 +128,7 @@ export class SimulationDb {
 			id: keys[index],
 			positions: value.positions,
 			ticks: value.ticks,
+			orientation: value.orientation,
 		}));
 	}
 	public async getSwitches(): Promise<GetSwitch> {
@@ -113,6 +137,7 @@ export class SimulationDb {
 		return timer.map((value, index) => ({
 			id: keys[index],
 			positions: value.positions,
+			orientation: value.orientation,
 		}));
 	}
 
@@ -128,5 +153,36 @@ export class SimulationDb {
 			[ElementTypes.TimerGate]: await this.getTimer(),
 			[ElementTypes.Switch]: await this.getSwitches(),
 		};
+	}
+
+	public async resetDb() {
+		const tx = this.db.transaction(
+			[
+				ElementTypes.Wire,
+				ElementTypes.AndGate,
+				ElementTypes.OrGate,
+				ElementTypes.XorGate,
+				ElementTypes.NotGate,
+				ElementTypes.BufferGate,
+				ElementTypes.LatchGate,
+				ElementTypes.TimerGate,
+				ElementTypes.Switch,
+			],
+			"readwrite",
+		);
+
+		await Promise.all([
+			tx.objectStore(ElementTypes.Wire).clear(),
+			tx.objectStore(ElementTypes.AndGate).clear(),
+			tx.objectStore(ElementTypes.OrGate).clear(),
+			tx.objectStore(ElementTypes.XorGate).clear(),
+			tx.objectStore(ElementTypes.NotGate).clear(),
+			tx.objectStore(ElementTypes.BufferGate).clear(),
+			tx.objectStore(ElementTypes.LatchGate).clear(),
+			tx.objectStore(ElementTypes.TimerGate).clear(),
+			tx.objectStore(ElementTypes.Switch).clear(),
+		]);
+
+		await tx.done;
 	}
 }

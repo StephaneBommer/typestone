@@ -303,4 +303,12 @@ impl Simulation {
             console_log("Invalid gate index");
         }
     }
+
+    pub fn reset(&mut self) {
+        self.composants.clear();
+        self.wires.clear();
+        self.wire_set.clear();
+        self.wire_groups.clear();
+        self.tick_counter = 0;
+    }
 }

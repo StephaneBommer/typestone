@@ -1,9 +1,15 @@
 import * as THREE from "three";
-import type { Orientation, Pos, WirePos } from "../../utils/types";
+import {
+	ElementTypes,
+	type Orientation,
+	type Pos,
+	type WirePos,
+} from "../../utils/types";
 import { OneInputGate } from "../components/gate/oneInputGate";
 import { TwoInputsGate } from "../components/gate/twoInputsGate";
 import { Switch } from "../components/switch";
 import { WireMesh } from "../wire";
+import type { Gate } from "./gate/gate";
 
 enum MaterialType {
 	WireOff = "WireOff",
@@ -138,6 +144,33 @@ export class ComponentsCreator {
 			topOn: this.material[MaterialType.SwitchOn],
 			topOff: this.material[MaterialType.SwitchOff],
 		});
+	}
+
+	public createComponent(
+		type: ElementTypes,
+		positions: Pos,
+		orientation: Orientation,
+	): Gate | Switch {
+		switch (type) {
+			case ElementTypes.AndGate:
+				return this.AndGate(positions, orientation);
+			case ElementTypes.OrGate:
+				return this.OrGate(positions, orientation);
+			case ElementTypes.XorGate:
+				return this.XorGate(positions, orientation);
+			case ElementTypes.NotGate:
+				return this.NotGate(positions, orientation);
+			case ElementTypes.BufferGate:
+				return this.BufferGate(positions, orientation);
+			case ElementTypes.LatchGate:
+				return this.Latch(positions, orientation);
+			case ElementTypes.TimerGate:
+				return this.Timer(positions, orientation);
+			case ElementTypes.Switch:
+				return this.Switch(positions, 1);
+			default:
+				throw new Error("Unknown component type");
+		}
 	}
 
 	private initMaterial() {

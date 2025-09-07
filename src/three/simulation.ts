@@ -4,9 +4,9 @@ import type {
 } from "../../rust/pkg/rust_counter";
 import * as RUST from "../../rust/pkg/rust_counter";
 import type { SimulationDb } from "../db/class";
-import type { GetWires } from "../db/type";
+import type { GetWires, getAllComponents } from "../db/type";
 import type { Pos, WirePos } from "../utils/types";
-import { Orientation } from "../utils/types";
+import { ElementTypes, Orientation } from "../utils/types";
 import type { OneInputGate } from "./components/gate/oneInputGate";
 import type { TwoInputsGate } from "./components/gate/twoInputsGate";
 import { Switch } from "./components/switch";
@@ -40,7 +40,7 @@ export class Simulation {
 	public scene: SimulationScene;
 	public db: SimulationDb;
 	private wires: Record<number, WireMesh> = {};
-	private components: Record<number, ComponentMesh> = {};
+	public components: Record<number, ComponentMesh> = {};
 	public rust_simulation: RustSimulation;
 
 	constructor(scene: SimulationScene, db: SimulationDb) {
@@ -175,5 +175,47 @@ export class Simulation {
 			.map((key) => {
 				return this.components[Number.parseInt(key)] as Switch;
 			});
+	}
+
+	public addComponents(dbComponents: getAllComponents) {
+		const {
+			[ElementTypes.Wire]: wires,
+			[ElementTypes.AndGate]: and_gates,
+			[ElementTypes.OrGate]: or_gates,
+			[ElementTypes.XorGate]: xor_gates,
+			[ElementTypes.NotGate]: not_gates,
+			[ElementTypes.BufferGate]: buffer_gates,
+			[ElementTypes.LatchGate]: latches,
+			[ElementTypes.TimerGate]: timer,
+			[ElementTypes.Switch]: switches,
+		} = dbComponents;
+
+		wires.forEach((wire) => this.Wire(wire.positions));
+		and_gates.forEach((gate) => this.AndGate(gate.positions, gate.orientation));
+		or_gates.forEach((gate) => this.OrGate(gate.positions, gate.orientation));
+		xor_gates.forEach((gate) => this.XorGate(gate.positions, gate.orientation));
+		not_gates.forEach((gate) => this.NotGate(gate.positions, gate.orientation));
+		buffer_gates.forEach((gate) =>
+			this.BufferGate(gate.positions, gate.orientation),
+		);
+		latches.forEach((gate) => this.Latch(gate.positions, gate.orientation));
+		timer.forEach((gate) =>
+			this.Timer(gate.positions, gate.ticks, gate.orientation),
+		);
+		switches.forEach((gate) => this.Switch(gate.positions));
+	}
+
+	public reset() {
+		this.rust_simulation.reset();
+		Object.values(this.wires).forEach((wire) => {
+			this.scene.remove(wire);
+			wire.clear?.();
+		});
+		Object.values(this.components).forEach((component) => {
+			this.scene.remove(component);
+			component.clear?.();
+		});
+		this.wires = {};
+		this.components = {};
 	}
 }

@@ -317,4 +317,55 @@ export class SimulationScene extends THREE.Scene {
 		this.addTimer(timer);
 		this.addSwitch(switches);
 	}
+
+	public resetScene() {
+		Object.values(this.components.wires).forEach((mesh) => {
+			this.remove(mesh);
+			mesh.clear?.();
+		});
+		Object.values(this.components.andGates).forEach((mesh) => {
+			this.remove(mesh);
+			mesh.clear?.();
+		});
+		Object.values(this.components.orGates).forEach((mesh) => {
+			this.remove(mesh);
+			mesh.clear?.();
+		});
+		Object.values(this.components.xorGates).forEach((mesh) => {
+			this.remove(mesh);
+			mesh.clear?.();
+		});
+		Object.values(this.components.notGates).forEach((mesh) => {
+			this.remove(mesh);
+			mesh.clear?.();
+		});
+		Object.values(this.components.bufferGates).forEach((mesh) => {
+			this.remove(mesh);
+			mesh.clear?.();
+		});
+		Object.values(this.components.latches).forEach((mesh) => {
+			this.remove(mesh);
+			mesh.clear?.();
+		});
+		Object.values(this.components.timer).forEach((mesh) => {
+			this.remove(mesh);
+			mesh.clear?.();
+		});
+		Object.values(this.components.switches).forEach((mesh) => {
+			this.remove(mesh);
+			mesh.clear?.();
+		});
+
+		this.components = {
+			wires: {},
+			andGates: {},
+			orGates: {},
+			xorGates: {},
+			notGates: {},
+			bufferGates: {},
+			latches: {},
+			timer: {},
+			switches: {},
+		};
+	}
 }

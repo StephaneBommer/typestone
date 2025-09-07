@@ -8,12 +8,12 @@ export type WirePos = Pos[];
 
 export enum ElementTypes {
 	Wire = "Wire",
+	Switch = "Switch",
+	BufferGate = "BufferGate",
+	NotGate = "NotGate",
+	TimerGate = "TimerGate",
 	AndGate = "AndGate",
 	OrGate = "OrGate",
 	XorGate = "XorGate",
-	NotGate = "NotGate",
-	BufferGate = "BufferGate",
 	LatchGate = "LatchGate",
-	TimerGate = "TimerGate",
-	Switch = "Switch",
 }

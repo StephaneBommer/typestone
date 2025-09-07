@@ -1,26 +1,37 @@
 import type { SimulationDb } from "../db/class";
-import type { Pos, WirePos } from "../utils/types";
+import {
+	ElementTypes,
+	Orientation,
+	type Pos,
+	type WirePos,
+} from "../utils/types";
+import type { Gate } from "./components/gate/gate";
+import type { Switch } from "./components/switch";
 import type { SimulationScene } from "./scene";
 import type { WireMesh } from "./wire";
 
-enum EditModeEnum {
+export enum EditModeEnum {
 	Neutral = 0,
 	EditWire = 1,
+	EditComponent = 2,
 }
 
 export class EditMode {
 	private db: SimulationDb;
 	private mode: EditModeEnum = EditModeEnum.EditWire;
+	private componentMode: ElementTypes = ElementTypes.BufferGate;
 	private scene: SimulationScene;
 	public editing = false;
 	private wire: WireMesh | null = null;
+	private component: Gate | Switch | null = null;
+	private newComponents: (Gate | Switch)[] = [];
 	private wirePath: WirePos = [];
+	private orientation: Orientation = Orientation.Right;
+	private stopEditingCallbacks: (() => void)[] = [];
 
 	constructor(scene: SimulationScene, db: SimulationDb) {
 		this.scene = scene;
 		this.db = db;
-
-		console.log("Edit mode");
 	}
 
 	public async click([x, y]: Pos) {
@@ -38,6 +49,25 @@ export class EditMode {
 
 			this.wire = this.scene.creator.Wire(this.wirePath);
 			this.scene.add(this.wire);
+		}
+		if (this.mode === EditModeEnum.EditComponent) {
+			if (this.component) {
+				this.scene.remove(this.component);
+				this.component.clear();
+			}
+			const newComponent = this.scene.creator.createComponent(
+				this.componentMode,
+				[x, y],
+				this.orientation,
+			);
+			this.scene.add(newComponent);
+			this.newComponents.push(newComponent);
+			await this.db.addComponent(
+				this.componentMode,
+				[x, y],
+				this.orientation,
+				this.componentMode === ElementTypes.TimerGate ? 100 : undefined,
+			);
 		}
 	}
 
@@ -67,6 +97,18 @@ export class EditMode {
 			this.wire = this.scene.creator.Wire(this.wirePath);
 			this.scene.add(this.wire);
 		}
+		if (this.mode === EditModeEnum.EditComponent) {
+			if (this.component) {
+				this.scene.remove(this.component);
+				this.component.clear();
+			}
+			this.component = this.scene.creator.createComponent(
+				this.componentMode,
+				[x, y],
+				this.orientation,
+			);
+			this.scene.add(this.component);
+		}
 	}
 
 	public async escape() {
@@ -83,6 +125,13 @@ export class EditMode {
 			this.wire.clear();
 			this.wire = null;
 		}
+		if (this.mode === EditModeEnum.EditComponent) {
+			if (!this.component) return;
+
+			this.scene.remove(this.component);
+			this.component.clear();
+			this.component = null;
+		}
 	}
 
 	public toggleEditMode() {
@@ -93,9 +142,9 @@ export class EditMode {
 		}
 	}
 
-	public startEditing() {
+	public startEditing(mode: EditModeEnum = EditModeEnum.EditWire) {
 		this.editing = true;
-		this.mode = EditModeEnum.EditWire;
+		this.mode = mode;
 		this.scene.grid.editMode(true);
 	}
 
@@ -103,5 +152,34 @@ export class EditMode {
 		this.escape();
 		this.editing = false;
 		this.scene.grid.editMode(false);
+		this.newComponents.map((comp) => {
+			this.scene.remove(comp);
+			comp.clear();
+		});
+		this.stopEditingCallbacks.forEach((cb) => cb());
+	}
+
+	public onStopEditing(callback: () => void) {
+		this.stopEditingCallbacks.push(callback);
+	}
+
+	public setEditMode(mode: EditModeEnum) {
+		this.escape();
+		if (!this.editing) this.startEditing(mode);
+		this.mode = mode;
+	}
+
+	public setComponentEditMode(mode: ElementTypes, pos: Pos | null) {
+		this.startEditing(EditModeEnum.EditComponent);
+		this.componentMode = mode;
+
+		pos && this.mousemove(pos);
+	}
+
+	public rotateComponent(pos: Pos | null) {
+		if (this.mode !== EditModeEnum.EditComponent) return;
+		this.orientation = (this.orientation + 1) % 4;
+
+		pos && this.mousemove(pos);
 	}
 }

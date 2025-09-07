@@ -1,6 +1,7 @@
 import * as THREE from "three";
-import type { Pos } from "../utils/types";
-import type { EditMode } from "./edit";
+import type { SimulationDb } from "../db/class";
+import { ElementTypes, type Pos } from "../utils/types";
+import { type EditMode, EditModeEnum } from "./edit";
 import type { SimulationScene } from "./scene";
 import type { Simulation } from "./simulation";
 import type { WireMesh } from "./wire";
@@ -15,12 +16,14 @@ export class GridClickHandler {
 	private wirePath: number[][] = [];
 	private editing = false;
 	private editMode: EditMode;
-
+	private lastMousePos: Pos | null = null;
+	private db: SimulationDb;
 	constructor(
 		scene: SimulationScene,
 		gridSize: number,
-		simulation: Simulation,
 		editMode: EditMode,
+		simulation: Simulation,
+		db: SimulationDb,
 	) {
 		this.raycaster = new THREE.Raycaster();
 		this.plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
@@ -28,6 +31,7 @@ export class GridClickHandler {
 		this.gridSize = gridSize;
 		this.simulation = simulation;
 		this.editMode = editMode;
+		this.db = db;
 
 		this.addEventListeners();
 	}
@@ -42,12 +46,70 @@ export class GridClickHandler {
 			"mousemove",
 			this.handleMouseMove.bind(this),
 		);
-		window.addEventListener("keydown", (event) => {
+		window.addEventListener("keyup", (event) => {
 			if (event.key === "Escape") {
 				this.handlePressEscape(event);
 			}
+			if (event.key === "r") {
+				this.editMode.rotateComponent(this.lastMousePos);
+			}
 			if (event.key === "e") {
 				this.editMode.toggleEditMode();
+			}
+			if (event.key === "@") {
+				this.editMode.setEditMode(EditModeEnum.EditWire);
+			}
+			if (event.key === "&") {
+				this.editMode.setComponentEditMode(
+					ElementTypes.Switch,
+					this.lastMousePos,
+				);
+			}
+			if (event.key === "é") {
+				this.editMode.setComponentEditMode(
+					ElementTypes.BufferGate,
+					this.lastMousePos,
+				);
+			}
+			if (event.key === '"') {
+				this.editMode.setComponentEditMode(
+					ElementTypes.NotGate,
+					this.lastMousePos,
+				);
+			}
+			if (event.key === "'") {
+				this.editMode.setComponentEditMode(
+					ElementTypes.TimerGate,
+					this.lastMousePos,
+				);
+			}
+			if (event.key === "(") {
+				this.editMode.setComponentEditMode(
+					ElementTypes.AndGate,
+					this.lastMousePos,
+				);
+			}
+			if (event.key === "§") {
+				this.editMode.setComponentEditMode(
+					ElementTypes.OrGate,
+					this.lastMousePos,
+				);
+			}
+			if (event.key === "è") {
+				this.editMode.setComponentEditMode(
+					ElementTypes.XorGate,
+					this.lastMousePos,
+				);
+			}
+			if (event.key === "è") {
+				this.editMode.setComponentEditMode(
+					ElementTypes.LatchGate,
+					this.lastMousePos,
+				);
+			}
+			if (event.key === "Backspace") {
+				this.db.resetDb();
+				this.editMode.stopEditing();
 			}
 		});
 	}
@@ -82,6 +144,7 @@ export class GridClickHandler {
 		const positions = this.findPositionOnGrid(event);
 		if (!positions) return;
 
+		this.lastMousePos = positions;
 		this.editMode.mousemove(positions);
 	}
 

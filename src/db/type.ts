@@ -73,42 +73,49 @@ export interface MyDB extends DBSchema {
 	[ElementTypes.AndGate]: {
 		value: {
 			positions: Pos;
+			orientation: Orientation;
 		};
 		key: number;
 	};
 	[ElementTypes.OrGate]: {
 		value: {
 			positions: Pos;
+			orientation: Orientation;
 		};
 		key: number;
 	};
 	[ElementTypes.XorGate]: {
 		value: {
 			positions: Pos;
+			orientation: Orientation;
 		};
 		key: number;
 	};
 	[ElementTypes.NotGate]: {
 		value: {
 			positions: Pos;
+			orientation: Orientation;
 		};
 		key: number;
 	};
 	[ElementTypes.BufferGate]: {
 		value: {
 			positions: Pos;
+			orientation: Orientation;
 		};
 		key: number;
 	};
 	[ElementTypes.LatchGate]: {
 		value: {
 			positions: Pos;
+			orientation: Orientation;
 		};
 		key: number;
 	};
 	[ElementTypes.TimerGate]: {
 		value: {
 			positions: Pos;
+			orientation: Orientation;
 			ticks: number;
 		};
 		key: number;
@@ -116,6 +123,7 @@ export interface MyDB extends DBSchema {
 	[ElementTypes.Switch]: {
 		value: {
 			positions: Pos;
+			orientation: Orientation;
 		};
 		key: number;
 	};

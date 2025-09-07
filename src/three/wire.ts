@@ -32,10 +32,7 @@ export class WireMesh extends THREE.Mesh {
 			(pair) => new THREE.Mesh(this.createLine(pair), this.material),
 		);
 
-		if (linesGeometries.length === 0) {
-			console.error("Aucune géométrie à fusionner.");
-			return;
-		}
+		if (linesGeometries.length === 0) return;
 
 		let unionCSG = CSG.fromMesh(linesGeometries[0]);
 
