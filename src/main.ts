@@ -28,7 +28,7 @@ import { AIM_HZ, MAX_DEEP, SIZE } from "./utils/const";
 		simulation.rust_simulation.compute_connections();
 	};
 
-	const editMode = new EditMode(scene, db);
+	const editMode = new EditMode(scene, db, simulation);
 	editMode.onStopEditing(reset);
 
 	new GridClickHandler(scene, SIZE, editMode, simulation, db);

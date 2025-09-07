@@ -17,10 +17,12 @@ import type {
 export class SimulationDb {
 	private db!: IDBPDatabase<MyDB>;
 	public async init() {
-		this.db = await openDB<MyDB>("typestone", 1, {
+		this.db = await openDB<MyDB>("typestone", 2, {
 			upgrade(db) {
 				db.createObjectStore(ElementTypes.Wire, { autoIncrement: true });
-				db.createObjectStore(ElementTypes.AndGate, { autoIncrement: true });
+				db.createObjectStore(ElementTypes.AndGate, {
+					autoIncrement: true,
+				});
 				db.createObjectStore(ElementTypes.OrGate, { autoIncrement: true });
 				db.createObjectStore(ElementTypes.XorGate, { autoIncrement: true });
 				db.createObjectStore(ElementTypes.NotGate, { autoIncrement: true });
@@ -153,6 +155,38 @@ export class SimulationDb {
 			[ElementTypes.TimerGate]: await this.getTimer(),
 			[ElementTypes.Switch]: await this.getSwitches(),
 		};
+	}
+
+	public async getElementFromPosition(position: [number, number]) {
+		const stores: ElementTypes[] = [
+			ElementTypes.Wire,
+			ElementTypes.AndGate,
+			ElementTypes.OrGate,
+			ElementTypes.XorGate,
+			ElementTypes.NotGate,
+			ElementTypes.BufferGate,
+			ElementTypes.LatchGate,
+			ElementTypes.TimerGate,
+			ElementTypes.Switch,
+		];
+
+		for (const type of stores) {
+			if (type === ElementTypes.Wire) continue;
+			const values = await this.db.getAll(type);
+			const keys = await this.db.getAllKeys(type);
+
+			for (let i = 0; i < values.length; i++) {
+				const comp = values[i];
+				if (
+					comp.positions[0] === position[0] &&
+					comp.positions[1] === position[1]
+				) {
+					return { id: keys[i] as number, type, values, keys };
+				}
+			}
+		}
+
+		return null;
 	}
 
 	public async resetDb() {

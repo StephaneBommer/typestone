@@ -7,8 +7,8 @@ import { Gate } from "./gate";
 export class TwoInputsGate extends Gate {
 	protected createInputs() {
 		const connectorGeometry = new skewBoxGeometry(1, 1, 1);
-		const input1 = new THREE.Mesh(connectorGeometry, this.material.connector);
-		const input2 = new THREE.Mesh(connectorGeometry, this.material.connector);
+		const input1 = new THREE.Mesh(connectorGeometry, this.material.input);
+		const input2 = new THREE.Mesh(connectorGeometry, this.material.input);
 
 		const { trans1, trans2 } = this.getTranslateParams();
 

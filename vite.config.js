@@ -2,6 +2,7 @@ export default {
 	publicDir: "../static/", // Path from "root" to static assets (files that are served as they are)
 	server: {
 		host: true, // Open to local network and display URL
+		port: 5170, // Port to use
 		open: !("SANDBOX_URL" in process.env || "CODESANDBOX_HOST" in process.env), // Open if it's not a CodeSandbox
 	},
 	build: {

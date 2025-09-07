@@ -5,23 +5,26 @@ import { skewBoxGeometry } from "../skew";
 export class Switch extends THREE.Group {
 	protected topMesh: THREE.Mesh;
 	protected material: {
-		connector: THREE.MeshStandardMaterial;
+		output: THREE.MeshStandardMaterial;
 		switch: THREE.MeshStandardMaterial;
 		topOn: THREE.MeshStandardMaterial;
 		topOff: THREE.MeshStandardMaterial;
+		delete: THREE.MeshStandardMaterial;
 	};
 	public pos: [number, number];
 	public state: boolean;
+	public isDeteling = false;
 	public comp_id: number;
 	constructor(
 		x: number,
 		y: number,
 		comp_id: number,
 		material: {
-			connector: THREE.MeshStandardMaterial;
+			output: THREE.MeshStandardMaterial;
 			switch: THREE.MeshStandardMaterial;
 			topOn: THREE.MeshStandardMaterial;
 			topOff: THREE.MeshStandardMaterial;
+			delete: THREE.MeshStandardMaterial;
 		},
 	) {
 		super();
@@ -39,12 +42,21 @@ export class Switch extends THREE.Group {
 		this.topMesh.material = state ? this.material.topOn : this.material.topOff;
 	}
 
+	public setDeleting(isDeleting: boolean) {
+		this.isDeteling = isDeleting;
+		if (isDeleting) {
+			(this.topMesh.material as THREE.MeshStandardMaterial).emissive.setHex(
+				0xff0000,
+			);
+		}
+	}
+
 	private createGate() {
 		const gateGeometry = new skewBoxGeometry(3, 3, 2, -2);
 		const connectorGeometry = new skewBoxGeometry(1, 1, 1);
 		const topGeometry = new skewBoxGeometry(1, 1, 0.25, -2, 0, 2);
 
-		const output = new THREE.Mesh(connectorGeometry, this.material.connector);
+		const output = new THREE.Mesh(connectorGeometry, this.material.output);
 		const box = new THREE.Mesh(gateGeometry, this.material.switch);
 		const top = new THREE.Mesh(topGeometry, this.material.topOff);
 

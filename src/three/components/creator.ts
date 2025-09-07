@@ -25,11 +25,14 @@ enum MaterialType {
 	GateOn = "GateOn",
 	GateOff = "GateOff",
 	// connectors
-	Connector = "Connector",
+	Input = "Input",
+	Output = "Output",
 	// Switch
 	SwitchOn = "SwitchOn",
 	SwitchOff = "SwitchOff",
 	Switch = "Switch",
+	// Editing
+	Delete = "Delete",
 }
 
 export class ComponentsCreator {
@@ -51,10 +54,12 @@ export class ComponentsCreator {
 			x,
 			y,
 			{
-				connector: this.material[MaterialType.Connector],
+				input: this.material[MaterialType.Input],
+				output: this.material[MaterialType.Output],
 				gate: this.material[MaterialType.AndGate],
 				topOn: this.material[MaterialType.GateOn],
 				topOff: this.material[MaterialType.GateOff],
+				delete: this.material[MaterialType.Delete],
 			},
 			orientation,
 		);
@@ -64,10 +69,12 @@ export class ComponentsCreator {
 			x,
 			y,
 			{
-				connector: this.material[MaterialType.Connector],
+				input: this.material[MaterialType.Input],
+				output: this.material[MaterialType.Output],
 				gate: this.material[MaterialType.OrGate],
 				topOn: this.material[MaterialType.GateOn],
 				topOff: this.material[MaterialType.GateOff],
+				delete: this.material[MaterialType.Delete],
 			},
 			orientation,
 		);
@@ -77,10 +84,12 @@ export class ComponentsCreator {
 			x,
 			y,
 			{
-				connector: this.material[MaterialType.Connector],
+				input: this.material[MaterialType.Input],
+				output: this.material[MaterialType.Output],
 				gate: this.material[MaterialType.XorGate],
 				topOn: this.material[MaterialType.GateOn],
 				topOff: this.material[MaterialType.GateOff],
+				delete: this.material[MaterialType.Delete],
 			},
 			orientation,
 		);
@@ -90,10 +99,13 @@ export class ComponentsCreator {
 			x,
 			y,
 			{
-				connector: this.material[MaterialType.Connector],
+				input: this.material[MaterialType.Input],
+				output: this.material[MaterialType.Output],
 				gate: this.material[MaterialType.NotGate],
 				topOn: this.material[MaterialType.GateOn],
 				topOff: this.material[MaterialType.GateOff],
+
+				delete: this.material[MaterialType.Delete],
 			},
 			orientation,
 		);
@@ -103,10 +115,12 @@ export class ComponentsCreator {
 			x,
 			y,
 			{
-				connector: this.material[MaterialType.Connector],
+				input: this.material[MaterialType.Input],
+				output: this.material[MaterialType.Output],
 				gate: this.material[MaterialType.BufferGate],
 				topOn: this.material[MaterialType.GateOn],
 				topOff: this.material[MaterialType.GateOff],
+				delete: this.material[MaterialType.Delete],
 			},
 			orientation,
 		);
@@ -116,10 +130,12 @@ export class ComponentsCreator {
 			x,
 			y,
 			{
-				connector: this.material[MaterialType.Connector],
+				input: this.material[MaterialType.Input],
+				output: this.material[MaterialType.Output],
 				gate: this.material[MaterialType.LatchGate],
 				topOn: this.material[MaterialType.GateOn],
 				topOff: this.material[MaterialType.GateOff],
+				delete: this.material[MaterialType.Delete],
 			},
 			orientation,
 		);
@@ -129,20 +145,23 @@ export class ComponentsCreator {
 			x,
 			y,
 			{
-				connector: this.material[MaterialType.Connector],
+				input: this.material[MaterialType.Input],
+				output: this.material[MaterialType.Output],
 				gate: this.material[MaterialType.TimerGate],
 				topOn: this.material[MaterialType.GateOn],
 				topOff: this.material[MaterialType.GateOff],
+				delete: this.material[MaterialType.Delete],
 			},
 			orientation,
 		);
 	}
 	public Switch([x, y]: Pos, comp_id: number) {
 		return new Switch(x, y, comp_id, {
-			connector: this.material[MaterialType.Connector],
+			output: this.material[MaterialType.Output],
 			switch: this.material[MaterialType.Switch],
 			topOn: this.material[MaterialType.SwitchOn],
 			topOff: this.material[MaterialType.SwitchOff],
+			delete: this.material[MaterialType.Delete],
 		});
 	}
 
@@ -214,8 +233,12 @@ export class ComponentsCreator {
 			[MaterialType.GateOff]: new THREE.MeshStandardMaterial({
 				color: 0x666666,
 			}),
-			[MaterialType.Connector]: new THREE.MeshStandardMaterial({
+			[MaterialType.Input]: new THREE.MeshStandardMaterial({
 				color: 0xe5b567,
+				depthWrite: false,
+			}),
+			[MaterialType.Output]: new THREE.MeshStandardMaterial({
+				color: 0xccddde,
 				depthWrite: false,
 			}),
 			[MaterialType.SwitchOn]: new THREE.MeshStandardMaterial({
@@ -226,6 +249,11 @@ export class ComponentsCreator {
 			}),
 			[MaterialType.Switch]: new THREE.MeshStandardMaterial({
 				color: 0x45474a,
+			}),
+			[MaterialType.Delete]: new THREE.MeshStandardMaterial({
+				color: 0x999999,
+				opacity: 0.3,
+				transparent: true,
 			}),
 		};
 	}

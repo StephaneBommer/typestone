@@ -57,7 +57,10 @@ export class GridClickHandler {
 				this.editMode.toggleEditMode();
 			}
 			if (event.key === "@") {
-				this.editMode.setEditMode(EditModeEnum.EditWire);
+				this.editMode.setEditMode(EditModeEnum.Wire);
+			}
+			if (event.key === "d") {
+				this.editMode.setEditMode(EditModeEnum.Delete);
 			}
 			if (event.key === "&") {
 				this.editMode.setComponentEditMode(
@@ -144,6 +147,13 @@ export class GridClickHandler {
 		const positions = this.findPositionOnGrid(event);
 		if (!positions) return;
 
+		if (
+			this.lastMousePos &&
+			positions[0] === this.lastMousePos[0] &&
+			positions[1] === this.lastMousePos[1]
+		) {
+			return;
+		}
 		this.lastMousePos = positions;
 		this.editMode.mousemove(positions);
 	}

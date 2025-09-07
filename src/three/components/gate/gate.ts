@@ -6,22 +6,27 @@ import { skewBoxGeometry } from "../../skew";
 export abstract class Gate extends THREE.Group {
 	protected topMesh: THREE.Mesh;
 	protected material: {
-		connector: THREE.MeshStandardMaterial;
+		input: THREE.MeshStandardMaterial;
+		output: THREE.MeshStandardMaterial;
 		gate: THREE.MeshStandardMaterial;
 		topOn: THREE.MeshStandardMaterial;
 		topOff: THREE.MeshStandardMaterial;
+		delete: THREE.MeshStandardMaterial;
 	};
 	public state: boolean;
 	public orientation: Orientation;
+	public isDeteling = false;
 
 	constructor(
 		x: number,
 		y: number,
 		material: {
-			connector: THREE.MeshStandardMaterial;
+			input: THREE.MeshStandardMaterial;
+			output: THREE.MeshStandardMaterial;
 			gate: THREE.MeshStandardMaterial;
 			topOn: THREE.MeshStandardMaterial;
 			topOff: THREE.MeshStandardMaterial;
+			delete: THREE.MeshStandardMaterial;
 		},
 		orientation?: Orientation,
 	) {
@@ -40,6 +45,16 @@ export abstract class Gate extends THREE.Group {
 		this.topMesh.material = state ? this.material.topOn : this.material.topOff;
 	}
 
+	public setDeleting(isDeleting: boolean) {
+		this.isDeteling = isDeleting;
+
+		this.traverse((child) => {
+			if (child instanceof THREE.Mesh) {
+				child.material = this.material.delete;
+			}
+		});
+	}
+
 	protected abstract createInputs(): void;
 
 	private createGate() {
@@ -49,7 +64,7 @@ export abstract class Gate extends THREE.Group {
 		const connectorGeometry = new skewBoxGeometry(1, 1, 1);
 		const topGeometry = new skewBoxGeometry(...params.top);
 
-		const output = new THREE.Mesh(connectorGeometry, this.material.connector);
+		const output = new THREE.Mesh(connectorGeometry, this.material.output);
 		const box = new THREE.Mesh(gateGeometry, this.material.gate);
 		const top = new THREE.Mesh(topGeometry, this.material.topOff);
 

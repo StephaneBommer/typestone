@@ -8,17 +8,19 @@ import {
 import type { Gate } from "./components/gate/gate";
 import type { Switch } from "./components/switch";
 import type { SimulationScene } from "./scene";
+import type { Simulation } from "./simulation";
 import type { WireMesh } from "./wire";
 
 export enum EditModeEnum {
 	Neutral = 0,
-	EditWire = 1,
-	EditComponent = 2,
+	Wire = 1,
+	Component = 2,
+	Delete = 3,
 }
 
 export class EditMode {
 	private db: SimulationDb;
-	private mode: EditModeEnum = EditModeEnum.EditWire;
+	private mode: EditModeEnum = EditModeEnum.Wire;
 	private componentMode: ElementTypes = ElementTypes.BufferGate;
 	private scene: SimulationScene;
 	public editing = false;
@@ -28,15 +30,21 @@ export class EditMode {
 	private wirePath: WirePos = [];
 	private orientation: Orientation = Orientation.Right;
 	private stopEditingCallbacks: (() => void)[] = [];
+	private simulation: Simulation;
 
-	constructor(scene: SimulationScene, db: SimulationDb) {
+	constructor(
+		scene: SimulationScene,
+		db: SimulationDb,
+		simulation: Simulation,
+	) {
 		this.scene = scene;
 		this.db = db;
+		this.simulation = simulation;
 	}
 
 	public async click([x, y]: Pos) {
 		if (!this.editing) return;
-		if (this.mode === EditModeEnum.EditWire) {
+		if (this.mode === EditModeEnum.Wire) {
 			if (this.wire) {
 				this.scene.remove(this.wire);
 				this.wire.clear();
@@ -50,7 +58,7 @@ export class EditMode {
 			this.wire = this.scene.creator.Wire(this.wirePath);
 			this.scene.add(this.wire);
 		}
-		if (this.mode === EditModeEnum.EditComponent) {
+		if (this.mode === EditModeEnum.Component) {
 			if (this.component) {
 				this.scene.remove(this.component);
 				this.component.clear();
@@ -71,10 +79,22 @@ export class EditMode {
 		}
 	}
 
-	public mousemove([x, y]: Pos) {
+	public async mousemove([x, y]: Pos) {
 		if (!this.editing) return;
-		if (this.mode === EditModeEnum.EditWire) {
-			if (!this.wire) return;
+		if (this.mode === EditModeEnum.Wire) {
+			if (this.wirePath.length === 0) {
+				if (this.wire) {
+					this.scene.remove(this.wire);
+					this.wire.clear();
+					this.wire = null;
+				}
+				this.wire = this.scene.creator.Wire([
+					[x, y],
+					[x, y],
+				]);
+				this.scene.add(this.wire);
+				return;
+			}
 
 			const lastPos = this.wirePath[this.wirePath.length - 2];
 			const [lastX, lastY] = lastPos;
@@ -97,7 +117,7 @@ export class EditMode {
 			this.wire = this.scene.creator.Wire(this.wirePath);
 			this.scene.add(this.wire);
 		}
-		if (this.mode === EditModeEnum.EditComponent) {
+		if (this.mode === EditModeEnum.Component) {
 			if (this.component) {
 				this.scene.remove(this.component);
 				this.component.clear();
@@ -109,11 +129,18 @@ export class EditMode {
 			);
 			this.scene.add(this.component);
 		}
+		if (this.mode === EditModeEnum.Delete) {
+			const obj = await this.db.getElementFromPosition([x, y]);
+
+			if (!obj) return;
+
+			this.simulation.components[obj.id].setDeleting(true);
+		}
 	}
 
 	public async escape() {
 		if (!this.editing) return;
-		if (this.mode === EditModeEnum.EditWire) {
+		if (this.mode === EditModeEnum.Wire) {
 			if (!this.wire) return;
 			this.wirePath.pop();
 
@@ -125,7 +152,7 @@ export class EditMode {
 			this.wire.clear();
 			this.wire = null;
 		}
-		if (this.mode === EditModeEnum.EditComponent) {
+		if (this.mode === EditModeEnum.Component) {
 			if (!this.component) return;
 
 			this.scene.remove(this.component);
@@ -142,7 +169,7 @@ export class EditMode {
 		}
 	}
 
-	public startEditing(mode: EditModeEnum = EditModeEnum.EditWire) {
+	public startEditing(mode: EditModeEnum = EditModeEnum.Wire) {
 		this.editing = true;
 		this.mode = mode;
 		this.scene.grid.editMode(true);
@@ -170,14 +197,15 @@ export class EditMode {
 	}
 
 	public setComponentEditMode(mode: ElementTypes, pos: Pos | null) {
-		this.startEditing(EditModeEnum.EditComponent);
+		this.escape();
+		this.startEditing(EditModeEnum.Component);
 		this.componentMode = mode;
 
 		pos && this.mousemove(pos);
 	}
 
 	public rotateComponent(pos: Pos | null) {
-		if (this.mode !== EditModeEnum.EditComponent) return;
+		if (this.mode !== EditModeEnum.Component) return;
 		this.orientation = (this.orientation + 1) % 4;
 
 		pos && this.mousemove(pos);
