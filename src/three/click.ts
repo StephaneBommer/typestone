@@ -104,7 +104,7 @@ export class GridClickHandler {
 					this.lastMousePos,
 				);
 			}
-			if (event.key === "è") {
+			if (event.key === "!") {
 				this.editMode.setComponentEditMode(
 					ElementTypes.LatchGate,
 					this.lastMousePos,
