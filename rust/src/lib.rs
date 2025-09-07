@@ -6,7 +6,7 @@ mod types;
 mod utils;
 mod wire;
 
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use wasm_bindgen::prelude::*;
 
 use crate::components::*;
@@ -28,7 +28,8 @@ pub enum ComposantsEnum {
 
 #[wasm_bindgen]
 pub struct Simulation {
-    composants: Vec<ComposantsEnum>,
+    // composants: Vec<ComposantsEnum>,
+    composants_map: HashMap<usize, ComposantsEnum>,
     wires: Vec<Wire>,
     wire_set: HashSet<usize>,
     wire_groups: Vec<WireGroup>,
@@ -39,7 +40,8 @@ pub struct Simulation {
 impl Simulation {
     pub fn new() -> Self {
         Simulation {
-            composants: Vec::new(),
+            // composants: Vec::new(),
+            composants_map: HashMap::new(),
             wires: Vec::new(),
             wire_set: HashSet::new(),
             wire_groups: Vec::new(),
@@ -50,87 +52,96 @@ impl Simulation {
     fn tick(&mut self) -> bool {
         let mut is_something_different: bool = false;
 
+        // Calcul des nouveaux états des wire groups
         let mut new_wire_group_states = Vec::with_capacity(self.wire_groups.len());
         for wire_group in self.wire_groups.iter() {
             let new_state = wire_group.compute_next_state(self);
-            new_wire_group_states.push(new_state);
+            new_wire_group_states.push((wire_group.circuit_element.id, new_state));
             is_something_different |= new_state.1;
         }
 
-        let mut new_composant_state = Vec::with_capacity(self.composants.len());
-        for composant in self.composants.iter() {
+        // Calcul des nouveaux états des composants
+        let mut new_composant_state: Vec<(usize, (bool, bool))> =
+            Vec::with_capacity(self.composants_map.len());
+
+        for (id, composant) in self.composants_map.iter() {
             match composant {
                 ComposantsEnum::OrGate(or_gate) => {
                     let new_state = or_gate.compute_next_state(self);
-                    new_composant_state.push(new_state);
+                    new_composant_state.push((*id, new_state));
                     is_something_different |= new_state.1;
                 }
                 ComposantsEnum::AndGate(and_gate) => {
                     let new_state = and_gate.compute_next_state(self);
-                    new_composant_state.push(new_state);
+                    new_composant_state.push((*id, new_state));
                     is_something_different |= new_state.1;
                 }
                 ComposantsEnum::XorGate(xor_gate) => {
                     let new_state = xor_gate.compute_next_state(self);
-                    new_composant_state.push(new_state);
+                    new_composant_state.push((*id, new_state));
                     is_something_different |= new_state.1;
                 }
                 ComposantsEnum::NotGate(not_gate) => {
                     let new_state = not_gate.compute_next_state(self);
-                    new_composant_state.push(new_state);
+                    new_composant_state.push((*id, new_state));
                     is_something_different |= new_state.1;
                 }
                 ComposantsEnum::BufferGate(buffer_gate) => {
                     let new_state = buffer_gate.compute_next_state(self);
-                    new_composant_state.push(new_state);
+                    new_composant_state.push((*id, new_state));
                     is_something_different |= new_state.1;
                 }
                 ComposantsEnum::LatchGate(latch_gate) => {
                     let new_state = latch_gate.compute_next_state(self);
-                    new_composant_state.push(new_state);
+                    new_composant_state.push((*id, new_state));
                     is_something_different |= new_state.1;
                 }
                 ComposantsEnum::TimerGate(timer_gate) => {
                     let new_state = timer_gate.compute_next_state(self);
-                    new_composant_state.push(new_state);
+                    new_composant_state.push((*id, new_state));
                 }
                 ComposantsEnum::Switch(switch) => {
-                    new_composant_state.push((switch.circuit_element.state, false));
+                    new_composant_state.push((*id, (switch.circuit_element.state, false)));
                 }
             };
         }
 
-        for (index, &wire_group_state) in new_wire_group_states.iter().enumerate() {
+        // Mise à jour des wire groups
+        for (index, &(_, wire_group_state)) in new_wire_group_states.iter().enumerate() {
             self.wire_groups[index]
                 .circuit_element
                 .set_state(wire_group_state.0);
         }
-        for (index, &comp_state) in new_composant_state.iter().enumerate() {
-            match &mut self.composants[index] {
-                ComposantsEnum::OrGate(or_gate) => {
-                    or_gate.gate.circuit_element.set_state(comp_state.0)
+
+        // Mise à jour des composants
+        for (id, comp_state) in new_composant_state {
+            if let Some(composant) = self.composants_map.get_mut(&id) {
+                match composant {
+                    ComposantsEnum::OrGate(or_gate) => {
+                        or_gate.gate.circuit_element.set_state(comp_state.0)
+                    }
+                    ComposantsEnum::AndGate(and_gate) => {
+                        and_gate.gate.circuit_element.set_state(comp_state.0)
+                    }
+                    ComposantsEnum::XorGate(xor_gate) => {
+                        xor_gate.gate.circuit_element.set_state(comp_state.0)
+                    }
+                    ComposantsEnum::NotGate(not_gate) => {
+                        not_gate.gate.circuit_element.set_state(comp_state.0)
+                    }
+                    ComposantsEnum::BufferGate(buffer_gate) => {
+                        buffer_gate.gate.circuit_element.set_state(comp_state.0)
+                    }
+                    ComposantsEnum::LatchGate(latch_gate) => {
+                        latch_gate.gate.circuit_element.set_state(comp_state.0)
+                    }
+                    ComposantsEnum::TimerGate(timer_gate) => {
+                        timer_gate.update_input(comp_state.0);
+                        let new_state = timer_gate.check_stack_and_update();
+                        is_something_different |= new_state.1;
+                    }
+                    ComposantsEnum::Switch(_) => (),
                 }
-                ComposantsEnum::AndGate(and_gate) => {
-                    and_gate.gate.circuit_element.set_state(comp_state.0)
-                }
-                ComposantsEnum::XorGate(xor_gate) => {
-                    xor_gate.gate.circuit_element.set_state(comp_state.0)
-                }
-                ComposantsEnum::NotGate(not_gate) => {
-                    not_gate.gate.circuit_element.set_state(comp_state.0)
-                }
-                ComposantsEnum::BufferGate(buffer_gate) => {
-                    buffer_gate.gate.circuit_element.set_state(comp_state.0)
-                }
-                ComposantsEnum::LatchGate(latch_gate) => {
-                    latch_gate.gate.circuit_element.set_state(comp_state.0)
-                }
-                ComposantsEnum::TimerGate(timer_gate) => {
-                    timer_gate.update_input(comp_state.0);
-                    let new_state = timer_gate.check_stack_and_update();
-                    is_something_different |= new_state.1;
-                }
-                ComposantsEnum::Switch(_) => (),
             }
         }
 
@@ -139,8 +150,8 @@ impl Simulation {
     }
 
     fn create_old_components_copy(&self) -> Vec<OldComponents> {
-        self.composants
-            .iter()
+        self.composants_map
+            .values()
             .map(|composant| match composant {
                 ComposantsEnum::OrGate(or_gate) => OldComponents {
                     index: or_gate.gate.circuit_element.id,
@@ -227,28 +238,48 @@ impl Simulation {
         &self,
         old_components: Vec<OldComponents>,
     ) -> Vec<ChangedElement> {
-        self.composants
-            .iter()
-            .enumerate()
-            .filter_map(|(index, composant)| {
-                let old_component = &old_components[index];
-                let new_state = match composant {
-                    ComposantsEnum::OrGate(or_gate) => or_gate.gate.circuit_element.state,
-                    ComposantsEnum::AndGate(and_gate) => and_gate.gate.circuit_element.state,
-                    ComposantsEnum::XorGate(xor_gate) => xor_gate.gate.circuit_element.state,
-                    ComposantsEnum::NotGate(not_gate) => not_gate.gate.circuit_element.state,
-                    ComposantsEnum::BufferGate(buffer_gate) => {
-                        buffer_gate.gate.circuit_element.state
+        self.composants_map
+            .values()
+            .filter_map(|composant| {
+                let (id, new_state) = match composant {
+                    ComposantsEnum::OrGate(or_gate) => (
+                        or_gate.gate.circuit_element.id,
+                        or_gate.gate.circuit_element.state,
+                    ),
+                    ComposantsEnum::AndGate(and_gate) => (
+                        and_gate.gate.circuit_element.id,
+                        and_gate.gate.circuit_element.state,
+                    ),
+                    ComposantsEnum::XorGate(xor_gate) => (
+                        xor_gate.gate.circuit_element.id,
+                        xor_gate.gate.circuit_element.state,
+                    ),
+                    ComposantsEnum::NotGate(not_gate) => (
+                        not_gate.gate.circuit_element.id,
+                        not_gate.gate.circuit_element.state,
+                    ),
+                    ComposantsEnum::BufferGate(buffer_gate) => (
+                        buffer_gate.gate.circuit_element.id,
+                        buffer_gate.gate.circuit_element.state,
+                    ),
+                    ComposantsEnum::LatchGate(latch_gate) => (
+                        latch_gate.gate.circuit_element.id,
+                        latch_gate.gate.circuit_element.state,
+                    ),
+                    ComposantsEnum::TimerGate(timer_gate) => (
+                        timer_gate.gate.circuit_element.id,
+                        timer_gate.gate.circuit_element.state,
+                    ),
+                    ComposantsEnum::Switch(switch) => {
+                        (switch.circuit_element.id, switch.circuit_element.state)
                     }
-                    ComposantsEnum::LatchGate(latch_gate) => latch_gate.gate.circuit_element.state,
-                    ComposantsEnum::TimerGate(timer_gate) => timer_gate.gate.circuit_element.state,
-                    ComposantsEnum::Switch(switch) => switch.circuit_element.state,
                 };
-                if new_state != old_component.state {
-                    Some(ChangedElement::new(old_component.index, new_state))
-                } else {
-                    None
+                if let Some(old_component) = old_components.iter().find(|c| c.index == id) {
+                    if new_state != old_component.state {
+                        return Some(ChangedElement::new(id, new_state));
+                    }
                 }
+                None
             })
             .collect()
     }
@@ -265,7 +296,7 @@ impl Simulation {
             }
         }
 
-        self.composants.iter_mut().for_each(|composant| {
+        self.composants_map.values_mut().for_each(|composant| {
             if let ComposantsEnum::TimerGate(timer_gate) = composant {
                 timer_gate.decrement_ticks();
             }
@@ -292,7 +323,7 @@ impl Simulation {
     }
 
     pub fn update_switch_state(&mut self, component_index: usize, state: bool) {
-        if let Some(composant) = self.composants.get_mut(component_index) {
+        if let Some(composant) = self.composants_map.get_mut(&component_index) {
             match composant {
                 ComposantsEnum::Switch(switch) => {
                     switch.circuit_element.set_state(state);
@@ -305,7 +336,7 @@ impl Simulation {
     }
 
     pub fn reset(&mut self) {
-        self.composants.clear();
+        self.composants_map.clear();
         self.wires.clear();
         self.wire_set.clear();
         self.wire_groups.clear();
