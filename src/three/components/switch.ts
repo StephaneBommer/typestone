@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import type { CreateComponent } from "../../db/type";
 import { SIZE } from "../../utils/const";
 import { Orientation, type Pos } from "../../utils/types";
 import { skewBoxGeometry } from "../skew";
@@ -17,11 +18,15 @@ export class Switch extends THREE.Group {
 	public orientation: Orientation;
 	public isDeteling = false;
 	private originalMaterials = new Map<THREE.Object3D, THREE.Material>();
-	public comp_id: number;
+	public key?: number;
 	constructor(
-		x: number,
-		y: number,
-		comp_id: number,
+		{
+			key,
+			value: {
+				positions: [x, y],
+				orientation,
+			},
+		}: CreateComponent,
 		material: {
 			output: THREE.MeshStandardMaterial;
 			switch: THREE.MeshStandardMaterial;
@@ -29,10 +34,9 @@ export class Switch extends THREE.Group {
 			topOff: THREE.MeshStandardMaterial;
 			delete: THREE.MeshStandardMaterial;
 		},
-		orientation: Orientation,
 	) {
 		super();
-		this.comp_id = comp_id;
+		this.key = key;
 		this.pos = [x, y];
 		this.material = material;
 		this.orientation = orientation;

@@ -6,16 +6,13 @@ import {
 	RenderPass,
 	UnrealBloomPass,
 } from "three/examples/jsm/Addons.js";
-import type { GetComponents, GetWires, getAllComponents } from "../db/type";
-import { ComposantTypes, ElementTypes } from "../utils/types";
 import { ComponentsCreator } from "./components/creator";
+import { Gate } from "./components/gate/gate";
 import type { OneInputGate } from "./components/gate/oneInputGate";
 import type { TwoInputsGate } from "./components/gate/twoInputsGate";
-import type { Switch } from "./components/switch";
+import { Switch } from "./components/switch";
 import { Grid } from "./grid";
-import type { WireMesh } from "./wire";
-
-type ComponentMesh = TwoInputsGate | OneInputGate | Switch;
+import { WireMesh } from "./wire";
 
 export class SimulationScene extends THREE.Scene {
 	private sizes: { width: number; height: number };
@@ -31,6 +28,7 @@ export class SimulationScene extends THREE.Scene {
 	public composer: EffectComposer;
 	public stats: Stats;
 	public creator: ComponentsCreator;
+	public raycaster: THREE.Raycaster;
 	public components: {
 		wires: Record<number, WireMesh>;
 		andGates: Record<number, TwoInputsGate>;
@@ -68,6 +66,7 @@ export class SimulationScene extends THREE.Scene {
 		this.composer = this.createComposer();
 		this.stats = this.createStats();
 		this.creator = new ComponentsCreator();
+		this.raycaster = new THREE.Raycaster();
 		this.addResizeEvent();
 		this.beforeUnloadEvent();
 		// this.loadCameraState();
@@ -212,160 +211,30 @@ export class SimulationScene extends THREE.Scene {
 		localStorage.setItem("targetZ", this.controls.target.z.toString());
 	};
 
-	public addWires(wires: GetWires) {
-		wires.forEach(({ value, key }) => {
-			const mesh = this.creator.Wire(value.positions);
-			this.add(mesh);
-			this.components.wires[key] = mesh;
-		});
-	}
+	public intersectElements(event: MouseEvent) {
+		const rect = this.canvas.getBoundingClientRect();
+		const mouse = new THREE.Vector2(
+			((event.clientX - rect.left) / rect.width) * 2 - 1,
+			-((event.clientY - rect.top) / rect.height) * 2 + 1,
+		);
+		this.raycaster.setFromCamera(mouse, this.camera);
 
-	public addAndGate(andGates: GetComponents) {
-		andGates.forEach(({ value, key }) => {
-			const mesh = this.creator.AndGate(value.positions, value.orientation);
-			this.add(mesh);
-			this.components.andGates[key] = mesh;
-		});
-	}
+		const filterChildren = this.children.filter(
+			(child) =>
+				child instanceof Gate ||
+				child instanceof Switch ||
+				child instanceof WireMesh,
+		);
 
-	public addOrGate(orGates: GetComponents) {
-		orGates.forEach(({ value, key }) => {
-			const mesh = this.creator.OrGate(value.positions, value.orientation);
-			this.add(mesh);
-			this.components.orGates[key] = mesh;
-		});
-	}
+		const intersects = this.raycaster.intersectObjects(filterChildren, true);
+		const parent = intersects.length > 0 ? intersects[0].object.parent : null;
+		const object =
+			parent instanceof Gate ||
+			parent instanceof Switch ||
+			parent instanceof WireMesh
+				? parent
+				: null;
 
-	public addXorGate(xorGates: GetComponents) {
-		xorGates.forEach(({ value, key }) => {
-			const mesh = this.creator.XorGate(value.positions, value.orientation);
-			this.add(mesh);
-			this.components.xorGates[key] = mesh;
-		});
-	}
-
-	public addNotGate(notGates: GetComponents) {
-		notGates.forEach(({ value, key }) => {
-			const mesh = this.creator.NotGate(value.positions, value.orientation);
-			this.add(mesh);
-			this.components.notGates[key] = mesh;
-		});
-	}
-
-	public addBufferGate(bufferGates: GetComponents) {
-		bufferGates.forEach(({ value, key }) => {
-			const mesh = this.creator.BufferGate(value.positions, value.orientation);
-			this.add(mesh);
-			this.components.bufferGates[key] = mesh;
-		});
-	}
-
-	public addLatches(latches: GetComponents) {
-		latches.forEach(({ value, key }) => {
-			const mesh = this.creator.Latch(value.positions, value.orientation);
-			this.add(mesh);
-			this.components.latches[key] = mesh;
-		});
-	}
-
-	public addTimer(timer: GetComponents) {
-		timer.forEach(({ value, key }) => {
-			const mesh = this.creator.Timer(value.positions, value.orientation);
-			this.add(mesh);
-			this.components.timer[key] = mesh;
-		});
-	}
-
-	public addSwitch(switches: GetComponents) {
-		switches.forEach(({ value, key }) => {
-			const mesh = this.creator.Switch(value.positions, value.orientation, key);
-			this.add(mesh);
-			this.components.switches[key] = mesh;
-		});
-	}
-
-	public addComponents(dbComponents: getAllComponents) {
-		const { [ElementTypes.Wire]: wires, [ElementTypes.Component]: components } =
-			dbComponents;
-		this.addWires(wires);
-		components.forEach((component) => {
-			switch (component.value.type) {
-				case ComposantTypes.AndGate:
-					this.addAndGate([component]);
-					break;
-				case ComposantTypes.OrGate:
-					this.addOrGate([component]);
-					break;
-				case ComposantTypes.XorGate:
-					this.addXorGate([component]);
-					break;
-				case ComposantTypes.NotGate:
-					this.addNotGate([component]);
-					break;
-				case ComposantTypes.BufferGate:
-					this.addBufferGate([component]);
-					break;
-				case ComposantTypes.LatchGate:
-					this.addLatches([component]);
-					break;
-				case ComposantTypes.TimerGate:
-					this.addTimer([component]);
-					break;
-				case ComposantTypes.Switch:
-					this.addSwitch([component]);
-					break;
-			}
-		});
-	}
-
-	public resetScene() {
-		Object.values(this.components.wires).forEach((mesh) => {
-			this.remove(mesh);
-			mesh.clear?.();
-		});
-		Object.values(this.components.andGates).forEach((mesh) => {
-			this.remove(mesh);
-			mesh.clear?.();
-		});
-		Object.values(this.components.orGates).forEach((mesh) => {
-			this.remove(mesh);
-			mesh.clear?.();
-		});
-		Object.values(this.components.xorGates).forEach((mesh) => {
-			this.remove(mesh);
-			mesh.clear?.();
-		});
-		Object.values(this.components.notGates).forEach((mesh) => {
-			this.remove(mesh);
-			mesh.clear?.();
-		});
-		Object.values(this.components.bufferGates).forEach((mesh) => {
-			this.remove(mesh);
-			mesh.clear?.();
-		});
-		Object.values(this.components.latches).forEach((mesh) => {
-			this.remove(mesh);
-			mesh.clear?.();
-		});
-		Object.values(this.components.timer).forEach((mesh) => {
-			this.remove(mesh);
-			mesh.clear?.();
-		});
-		Object.values(this.components.switches).forEach((mesh) => {
-			this.remove(mesh);
-			mesh.clear?.();
-		});
-
-		this.components = {
-			wires: {},
-			andGates: {},
-			orGates: {},
-			xorGates: {},
-			notGates: {},
-			bufferGates: {},
-			latches: {},
-			timer: {},
-			switches: {},
-		};
+		return object;
 	}
 }

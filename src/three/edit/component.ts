@@ -14,20 +14,24 @@ export class ComponentEditHandler extends BaseEditHandler {
 			this.scene.remove(this.component);
 			this.component.clear();
 		}
-		const newComponent = this.scene.creator.createComponent(
-			this.componentMode,
-			[x, y],
-			this.orientation,
-		);
-		this.scene.add(newComponent);
-		this.newComponents.push(newComponent);
 
-		await this.db.addComponent(
+		const ticks =
+			this.componentMode === ComposantTypes.TimerGate ? 100 : undefined;
+		const { id } = await this.db.addComponent(
 			this.componentMode,
 			[x, y],
 			this.orientation,
-			this.componentMode === ComposantTypes.TimerGate ? 100 : undefined,
+			ticks,
 		);
+		this.simulation.addComponent({
+			key: id,
+			value: {
+				positions: [x, y],
+				type: this.componentMode,
+				orientation: this.orientation,
+				ticks,
+			},
+		});
 	}
 
 	async mousemove([x, y]: Pos) {
@@ -35,11 +39,13 @@ export class ComponentEditHandler extends BaseEditHandler {
 			this.scene.remove(this.component);
 			this.component.clear();
 		}
-		this.component = this.scene.creator.createComponent(
-			this.componentMode,
-			[x, y],
-			this.orientation,
-		);
+		this.component = this.scene.creator.createComponent({
+			value: {
+				type: this.componentMode,
+				positions: [x, y],
+				orientation: this.orientation,
+			},
+		});
 		this.scene.add(this.component);
 	}
 

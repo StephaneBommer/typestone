@@ -22,7 +22,6 @@ import { AIM_HZ, MAX_DEEP, SIZE } from "./utils/const";
 
 	const reset = async () => {
 		const newDbComponents = await db.getAllComponents();
-		scene.resetScene();
 		simulation.reset();
 		simulation.addComponents(newDbComponents);
 		simulation.rust_simulation.compute_connections();

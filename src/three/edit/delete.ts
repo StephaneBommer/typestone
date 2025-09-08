@@ -1,47 +1,56 @@
 import type { Pos } from "../../utils/types";
+import { WireMesh } from "../wire";
 import type { Gate } from "./../components/gate/gate";
 import type { Switch } from "./../components/switch";
 import { BaseEditHandler } from "./base";
 
 export class DeleteEditHandler extends BaseEditHandler {
-	private componentDeleting: { mesh: Gate | Switch; id: number } | null = null;
+	private elementDeleting: {
+		mesh: Gate | Switch | WireMesh;
+		id: number;
+	} | null = null;
 
-	async click([x, y]: Pos) {
-		const obj = await this.db.getElementFromPosition([x, y]);
-		if (!obj) return;
-
-		if (this.componentDeleting) {
-			this.scene.remove(this.componentDeleting.mesh);
-			this.db.deleteComponent(this.componentDeleting.id);
-			this.componentDeleting.mesh.clear();
-			this.componentDeleting = null;
+	async click(_: Pos) {
+		if (this.elementDeleting) {
+			this.scene.remove(this.elementDeleting.mesh);
+			if (this.elementDeleting.mesh instanceof WireMesh) {
+				this.db.deleteWire(this.elementDeleting.id);
+			} else {
+				this.db.deleteComponent(this.elementDeleting.id);
+			}
+			this.elementDeleting.mesh.clear();
+			this.elementDeleting = null;
 		}
 	}
 
-	async mousemove([x, y]: Pos) {
-		const obj = await this.db.getElementFromPosition([x, y]);
+	async mousemove(_: Pos, event?: MouseEvent) {
+		if (!event) return;
+		const object = this.scene.intersectElements(event);
 
 		if (
-			this.componentDeleting &&
-			((obj && obj.id !== this.componentDeleting.id) || !obj)
+			this.elementDeleting &&
+			((object && object.key !== this.elementDeleting.id) || !object)
 		) {
-			this.componentDeleting.mesh.setDeleting(false);
-			this.componentDeleting = null;
+			this.elementDeleting.mesh.setDeleting(false);
+			this.elementDeleting = null;
 		}
 
-		if (!obj) return;
+		if (!object || object.key === undefined) return;
 
-		this.componentDeleting = {
-			mesh: this.simulation.components[obj.id],
-			id: obj.id,
+		this.elementDeleting = {
+			mesh:
+				object instanceof WireMesh
+					? this.simulation.wires[object.key]
+					: this.simulation.components[object.key],
+			id: object.key,
 		};
-		this.componentDeleting.mesh.setDeleting(true);
+		this.elementDeleting.mesh.setDeleting(true);
 	}
 
 	async escape() {
-		if (this.componentDeleting) {
-			this.componentDeleting.mesh.setDeleting(false);
-			this.componentDeleting = null;
+		if (this.elementDeleting) {
+			this.elementDeleting.mesh.setDeleting(false);
+			this.elementDeleting = null;
 		}
 	}
 }

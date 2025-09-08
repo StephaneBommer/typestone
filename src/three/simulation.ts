@@ -4,8 +4,13 @@ import type {
 } from "../../rust/pkg/rust_counter";
 import * as RUST from "../../rust/pkg/rust_counter";
 import type { SimulationDb } from "../db/class";
-import type { GetComponents, GetWires, getAllComponents } from "../db/type";
-import type { WirePos } from "../utils/types";
+import type {
+	CreateSimulationComponent,
+	CreateSimulationWire,
+	GetComponents,
+	GetWires,
+	getAllComponents,
+} from "../db/type";
 import { ComposantTypes, ElementTypes } from "../utils/types";
 import type { OneInputGate } from "./components/gate/oneInputGate";
 import type { TwoInputsGate } from "./components/gate/twoInputsGate";
@@ -18,7 +23,7 @@ type ComponentMesh = TwoInputsGate | OneInputGate | Switch;
 export class Simulation {
 	public scene: SimulationScene;
 	public db: SimulationDb;
-	private wires: Record<number, WireMesh> = {};
+	public wires: Record<number, WireMesh> = {};
 	public components: Record<number, ComponentMesh> = {};
 	public rust_simulation: RustSimulation;
 
@@ -27,98 +32,86 @@ export class Simulation {
 		this.db = db;
 		this.rust_simulation = RUST.Simulation.new();
 	}
-	public Wire({ value: wire, key }: GetWires[number], edit = false) {
-		const mesh = this.scene.creator.Wire(wire.positions);
+	public Wire(wire: CreateSimulationWire) {
+		const {
+			key,
+			value: { positions },
+		} = wire;
+		const mesh = this.scene.creator.Wire(wire);
 		this.scene.add(mesh);
-		if (edit) return mesh;
-		this.rust_simulation.add_wire(wire.positions, key);
+		this.rust_simulation.add_wire(positions, key);
 		this.wires[key] = mesh;
 		return mesh;
 	}
-	public WireEdit(line: WirePos) {
-		const mesh = this.scene.creator.Wire(line);
-		this.scene.add(mesh);
-		return mesh;
-	}
-	public AndGate({ value: andGate, key }: GetComponents[number]) {
+
+	public AndGate(component: CreateSimulationComponent) {
+		const { value: andGate, key } = component;
 		this.rust_simulation.add_and_gate(
 			new Int32Array(andGate.positions),
 			andGate.orientation,
 			key,
 		);
-		const mesh = this.scene.creator.AndGate(
-			andGate.positions,
-			andGate.orientation,
-		);
+		const mesh = this.scene.creator.AndGate(component);
 		this.scene.add(mesh);
 		this.components[key] = mesh;
 	}
-	public OrGate({ value: orGate, key }: GetComponents[number]) {
+	public OrGate(component: CreateSimulationComponent) {
+		const { value: orGate, key } = component;
 		this.rust_simulation.add_or_gate(
 			new Int32Array(orGate.positions),
 			orGate.orientation,
 			key,
 		);
-		const mesh = this.scene.creator.OrGate(
-			orGate.positions,
-			orGate.orientation,
-		);
+		const mesh = this.scene.creator.OrGate(component);
 		this.scene.add(mesh);
 		this.components[key] = mesh;
 	}
-	public XorGate({ value: xorGate, key }: GetComponents[number]) {
+	public XorGate(component: CreateSimulationComponent) {
+		const { value: xorGate, key } = component;
 		this.rust_simulation.add_xor_gate(
 			new Int32Array(xorGate.positions),
 			xorGate.orientation,
 			key,
 		);
-		const mesh = this.scene.creator.XorGate(
-			xorGate.positions,
-			xorGate.orientation,
-		);
+		const mesh = this.scene.creator.XorGate(component);
 		this.scene.add(mesh);
 		this.components[key] = mesh;
 	}
-	public NotGate({ value: notGate, key }: GetComponents[number]) {
+	public NotGate(component: CreateSimulationComponent) {
+		const { value: notGate, key } = component;
 		this.rust_simulation.add_not_gate(
 			new Int32Array(notGate.positions),
 			notGate.orientation,
 			key,
 		);
-		const mesh = this.scene.creator.NotGate(
-			notGate.positions,
-			notGate.orientation,
-		);
+		const mesh = this.scene.creator.NotGate(component);
 		this.scene.add(mesh);
 		this.components[key] = mesh;
 	}
-	public BufferGate({ value: bufferGate, key }: GetComponents[number]) {
+	public BufferGate(component: CreateSimulationComponent) {
+		const { value: bufferGate, key } = component;
 		this.rust_simulation.add_buffer_gate(
 			new Int32Array(bufferGate.positions),
 			bufferGate.orientation,
 			key,
 		);
-		const mesh = this.scene.creator.BufferGate(
-			bufferGate.positions,
-			bufferGate.orientation,
-		);
+		const mesh = this.scene.creator.BufferGate(component);
 		this.scene.add(mesh);
 		this.components[key] = mesh;
 	}
-	public Latch({ value: latchGate, key }: GetComponents[number]) {
+	public Latch(component: GetComponents[number]) {
+		const { value: latchGate, key } = component;
 		this.rust_simulation.add_latch_gate(
 			new Int32Array(latchGate.positions),
 			latchGate.orientation,
 			key,
 		);
-		const mesh = this.scene.creator.Latch(
-			latchGate.positions,
-			latchGate.orientation,
-		);
+		const mesh = this.scene.creator.Latch(component);
 		this.scene.add(mesh);
 		this.components[key] = mesh;
 	}
-	public Timer({ value: timer, key }: GetComponents[number]) {
+	public Timer(component: CreateSimulationComponent) {
+		const { value: timer, key } = component;
 		if (!("ticks" in timer)) return;
 		this.rust_simulation.add_timer(
 			new Int32Array(timer.positions),
@@ -126,17 +119,14 @@ export class Simulation {
 			timer.orientation,
 			key,
 		);
-		const mesh = this.scene.creator.Timer(timer.positions, timer.orientation);
+		const mesh = this.scene.creator.Timer(component);
 		this.scene.add(mesh);
 		this.components[key] = mesh;
 	}
-	public Switch({ value: switch_, key }: GetComponents[number]) {
+	public Switch(component: CreateSimulationComponent) {
+		const { value: switch_, key } = component;
 		this.rust_simulation.add_switch(new Int32Array(switch_.positions), key);
-		const mesh = this.scene.creator.Switch(
-			switch_.positions,
-			switch_.orientation,
-			key,
-		);
+		const mesh = this.scene.creator.Switch(component);
 		this.scene.add(mesh);
 		this.components[key] = mesh;
 	}
@@ -182,38 +172,46 @@ export class Simulation {
 			});
 	}
 
+	public addWire(wire: GetWires[number]) {
+		this.Wire(wire);
+	}
+
+	public addComponent(component: CreateSimulationComponent) {
+		switch (component.value.type) {
+			case ComposantTypes.AndGate:
+				this.AndGate(component);
+				break;
+			case ComposantTypes.OrGate:
+				this.OrGate(component);
+				break;
+			case ComposantTypes.XorGate:
+				this.XorGate(component);
+				break;
+			case ComposantTypes.NotGate:
+				this.NotGate(component);
+				break;
+			case ComposantTypes.BufferGate:
+				this.BufferGate(component);
+				break;
+			case ComposantTypes.LatchGate:
+				this.Latch(component);
+				break;
+			case ComposantTypes.TimerGate:
+				this.Timer(component);
+				break;
+			case ComposantTypes.Switch:
+				this.Switch(component);
+				break;
+		}
+	}
+
 	public addComponents(dbComponents: getAllComponents) {
 		const { [ElementTypes.Wire]: wires, [ElementTypes.Component]: components } =
 			dbComponents;
 
 		wires.forEach((wire) => this.Wire(wire));
 		components.forEach((component) => {
-			switch (component.value.type) {
-				case ComposantTypes.AndGate:
-					this.AndGate(component);
-					break;
-				case ComposantTypes.OrGate:
-					this.OrGate(component);
-					break;
-				case ComposantTypes.XorGate:
-					this.XorGate(component);
-					break;
-				case ComposantTypes.NotGate:
-					this.NotGate(component);
-					break;
-				case ComposantTypes.BufferGate:
-					this.BufferGate(component);
-					break;
-				case ComposantTypes.LatchGate:
-					this.Latch(component);
-					break;
-				case ComposantTypes.TimerGate:
-					this.Timer(component);
-					break;
-				case ComposantTypes.Switch:
-					this.Switch(component);
-					break;
-			}
+			this.addComponent(component);
 		});
 	}
 

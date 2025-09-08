@@ -41,9 +41,9 @@ export class EditMode {
 		await this.current.click(pos);
 	}
 
-	async mousemove(pos: Pos) {
+	async mousemove(pos: Pos, event?: MouseEvent) {
 		if (!this.editing) return;
-		await this.current.mousemove(pos);
+		await this.current.mousemove(pos, event);
 	}
 
 	async escape() {

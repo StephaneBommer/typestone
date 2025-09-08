@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import type { CreateComponent } from "../../../db/type";
 import { SIZE } from "../../../utils/const";
 import { Orientation } from "../../../utils/types";
 import { skewBoxGeometry } from "../../skew";
@@ -17,10 +18,16 @@ export abstract class Gate extends THREE.Group {
 	public orientation: Orientation;
 	public isDeteling = false;
 	private originalMaterials = new Map<THREE.Object3D, THREE.Material>();
+	public key?: number;
 
 	constructor(
-		x: number,
-		y: number,
+		{
+			key,
+			value: {
+				positions: [x, y],
+				orientation,
+			},
+		}: CreateComponent,
 		material: {
 			input: THREE.MeshStandardMaterial;
 			output: THREE.MeshStandardMaterial;
@@ -29,7 +36,6 @@ export abstract class Gate extends THREE.Group {
 			topOff: THREE.MeshStandardMaterial;
 			delete: THREE.MeshStandardMaterial;
 		},
-		orientation: Orientation,
 	) {
 		super();
 		this.material = material;
@@ -39,6 +45,7 @@ export abstract class Gate extends THREE.Group {
 		this.translateX(x * SIZE);
 		this.translateY(y * -SIZE);
 		this.state = false;
+		this.key = key;
 	}
 
 	public setState(state: boolean) {

@@ -1,34 +1,44 @@
 import * as THREE from "three";
 import { CSG } from "three-csg-ts";
+import type { CreateWire } from "../db/type";
 import { SIZE } from "../utils/const";
 import { skewBoxGeometry } from "./skew";
 
 export class WireMesh extends THREE.Group {
 	public state: boolean;
-	private materialOn: THREE.Material;
-	private materialOff: THREE.Material;
+	private material: {
+		on: THREE.MeshStandardMaterial;
+		off: THREE.MeshStandardMaterial;
+		delete: THREE.MeshStandardMaterial;
+	};
+	public isDeteling = false;
+	private originalMaterials = new Map<THREE.Object3D, THREE.Material>();
+	public key?: number;
 	constructor(
-		line: number[][],
-		materialOn: THREE.Material,
-		materialOff: THREE.Material,
+		{ key, value: { positions } }: CreateWire,
+		material: {
+			on: THREE.MeshStandardMaterial;
+			off: THREE.MeshStandardMaterial;
+			delete: THREE.MeshStandardMaterial;
+		},
 	) {
 		super();
-		this.createGeometry(line);
+		this.material = material;
+		this.createGeometry(positions);
 		this.state = false;
-		this.materialOn = materialOn;
-		this.materialOff = materialOff;
 		this.children.forEach((child) => {
 			if (child instanceof THREE.Mesh) {
-				child.material = this.state ? this.materialOn : this.materialOff;
+				child.material = this.state ? this.material.on : this.material.off;
 			}
 		});
+		this.key = key;
 	}
 
 	public setState(state: boolean) {
 		this.state = state;
 		this.children.forEach((child) => {
 			if (child instanceof THREE.Mesh) {
-				child.material = this.state ? this.materialOn : this.materialOff;
+				child.material = this.state ? this.material.on : this.material.off;
 			}
 		});
 	}
@@ -40,7 +50,7 @@ export class WireMesh extends THREE.Group {
 			(pair) =>
 				new THREE.Mesh(
 					this.createLine(pair),
-					this.state ? this.materialOn : this.materialOff,
+					this.state ? this.material.on : this.material.off,
 				),
 		);
 
@@ -60,7 +70,7 @@ export class WireMesh extends THREE.Group {
 		this.add(
 			new THREE.Mesh(
 				unionGeometry,
-				this.state ? this.materialOn : this.materialOff,
+				this.state ? this.material.on : this.material.off,
 			),
 		);
 		path.map((p, index) => {
@@ -75,7 +85,7 @@ export class WireMesh extends THREE.Group {
 			)
 				return;
 
-			this.add(new THREE.Mesh(this.createLine([p, p]), this.materialOn));
+			this.add(new THREE.Mesh(this.createLine([p, p]), this.material.on));
 		});
 
 		linesGeometries.forEach((mesh) => {
@@ -108,5 +118,28 @@ export class WireMesh extends THREE.Group {
 		return points
 			.slice(0, -1)
 			.map((point, index) => [point, points[index + 1]]);
+	}
+
+	public setDeleting(isDeleting: boolean) {
+		this.isDeteling = isDeleting;
+		this.traverse((child) => {
+			if (child instanceof THREE.Mesh) {
+				if (isDeleting) {
+					if (!this.originalMaterials.has(child)) {
+						this.originalMaterials.set(child, child.material);
+					}
+					child.material = this.material.delete;
+				} else {
+					const orig = this.originalMaterials.get(child);
+					if (orig) {
+						child.material = orig;
+					}
+				}
+			}
+		});
+
+		if (!isDeleting) {
+			this.originalMaterials.clear();
+		}
 	}
 }

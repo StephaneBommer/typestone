@@ -8,10 +8,10 @@ export class Grid extends THREE.Group {
 		super();
 
 		this.materialLine = new THREE.LineBasicMaterial({
-			color: 0x303030,
+			color: 0x202020,
 		});
 		this.materialLineEdit = new THREE.LineBasicMaterial({
-			color: 0x606060,
+			color: 0x404040,
 		});
 		this.createGrid(width, height, SIZE, color);
 	}

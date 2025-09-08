@@ -5,7 +5,7 @@ import type { Simulation } from "./../simulation";
 
 export interface EditHandler {
 	click(pos: Pos): Promise<void>;
-	mousemove(pos: Pos): Promise<void>;
+	mousemove(pos: Pos, event?: MouseEvent): Promise<void>;
 	escape(): Promise<void>;
 }
 

@@ -130,7 +130,9 @@ export class GridClickHandler {
 		const switchs = this.simulation.get_switchs();
 
 		switchs.forEach((swi) => {
-			swi.isClicked(positions) && this.simulation.toggle_switch(swi.comp_id);
+			swi.isClicked(positions) &&
+				typeof swi.key === "number" &&
+				this.simulation.toggle_switch(swi.key);
 		});
 	}
 
@@ -146,7 +148,7 @@ export class GridClickHandler {
 			return;
 		}
 		this.lastMousePos = positions;
-		this.editMode.mousemove(positions);
+		this.editMode.mousemove(positions, event);
 	}
 
 	private findPositionOnGrid(event: MouseEvent): Pos | null {

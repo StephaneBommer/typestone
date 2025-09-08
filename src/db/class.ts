@@ -71,7 +71,6 @@ export class SimulationDb {
 	}
 
 	public async deleteComponent(id: number) {
-		console.log("delete component", id);
 		await this.db.delete(ElementTypes.Component, id);
 	}
 

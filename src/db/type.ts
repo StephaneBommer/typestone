@@ -18,8 +18,42 @@ export type GetWires = {
 		positions: WirePos;
 	};
 }[];
-export type GetComponents = {
+
+export type CreateWire = {
+	key?: number;
+	value: {
+		positions: WirePos;
+	};
+};
+export type CreateSimulationWire = {
 	key: number;
+	value: {
+		positions: WirePos;
+	};
+};
+
+type CreateComponentValue =
+	| {
+			type: Omit<ComposantTypes, "TimerGate">;
+			positions: Pos;
+			orientation: Orientation;
+	  }
+	| {
+			type: ComposantTypes.TimerGate;
+			positions: Pos;
+			orientation: Orientation;
+			ticks: number;
+	  };
+
+export type CreateSimulationComponent = {
+	key: number;
+	value: CreateComponentValue;
+};
+
+export type GetComponents = CreateSimulationComponent[];
+
+export type CreateComponent = {
+	key?: number;
 	value:
 		| {
 				type: Omit<ComposantTypes, "TimerGate">;
@@ -32,7 +66,7 @@ export type GetComponents = {
 				orientation: Orientation;
 				ticks: number;
 		  };
-}[];
+};
 
 export interface MyDB extends DBSchema {
 	[ElementTypes.Wire]: {

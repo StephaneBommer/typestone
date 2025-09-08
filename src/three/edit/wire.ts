@@ -16,7 +16,9 @@ export class WireEditHandler extends BaseEditHandler {
 		} else {
 			this.wirePath.push([x, y]);
 		}
-		this.wire = this.scene.creator.Wire(this.wirePath);
+		this.wire = this.scene.creator.Wire({
+			value: { positions: this.wirePath },
+		});
 		this.scene.add(this.wire);
 	}
 
@@ -27,10 +29,14 @@ export class WireEditHandler extends BaseEditHandler {
 				this.wire.clear();
 				this.wire = null;
 			}
-			this.wire = this.scene.creator.Wire([
-				[x, y],
-				[x, y],
-			]);
+			this.wire = this.scene.creator.Wire({
+				value: {
+					positions: [
+						[x, y],
+						[x, y],
+					],
+				},
+			});
 			this.scene.add(this.wire);
 			return;
 		}
@@ -53,7 +59,9 @@ export class WireEditHandler extends BaseEditHandler {
 			this.wirePath[this.wirePath.length - 1][1] = y;
 			this.wirePath[this.wirePath.length - 1][0] = lastX;
 		}
-		this.wire = this.scene.creator.Wire(this.wirePath);
+		this.wire = this.scene.creator.Wire({
+			value: { positions: this.wirePath },
+		});
 		this.scene.add(this.wire);
 	}
 
@@ -62,7 +70,10 @@ export class WireEditHandler extends BaseEditHandler {
 		this.wirePath.pop();
 
 		const wire = await this.db.addWire(this.wirePath);
-		this.scene.addWires([wire]);
+		this.simulation.addWire({
+			key: wire.key,
+			value: { positions: this.wirePath },
+		});
 
 		this.scene.remove(this.wire);
 		this.wirePath = [];
