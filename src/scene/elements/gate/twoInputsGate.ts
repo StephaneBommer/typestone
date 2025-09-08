@@ -1,8 +1,8 @@
 import * as THREE from "three";
-import { SIZE } from "../../../utils/const";
+import { Gate } from ".";
+import { SIZE } from "../../../utils/constants";
 import { Orientation } from "../../../utils/types";
-import { skewBoxGeometry } from "../../skew";
-import { Gate } from "./gate";
+import { skewBoxGeometry } from "../../geometry/skew";
 
 export class TwoInputsGate extends Gate {
 	protected createInputs() {

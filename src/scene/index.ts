@@ -6,13 +6,13 @@ import {
 	RenderPass,
 	UnrealBloomPass,
 } from "three/examples/jsm/Addons.js";
-import { ComponentsCreator } from "./components/creator";
-import { Gate } from "./components/gate/gate";
-import type { OneInputGate } from "./components/gate/oneInputGate";
-import type { TwoInputsGate } from "./components/gate/twoInputsGate";
-import { Switch } from "./components/switch";
+import { ComponentsCreator } from "./elements";
+import { Gate } from "./elements/gate";
+import type { OneInputGate } from "./elements/gate/oneInputGate";
+import type { TwoInputsGate } from "./elements/gate/twoInputsGate";
+import { Switch } from "./elements/switch";
+import { Wire } from "./elements/wire";
 import { Grid } from "./grid";
-import { WireMesh } from "./wire";
 
 export class SimulationScene extends THREE.Scene {
 	private sizes: { width: number; height: number };
@@ -30,7 +30,7 @@ export class SimulationScene extends THREE.Scene {
 	public creator: ComponentsCreator;
 	public raycaster: THREE.Raycaster;
 	public components: {
-		wires: Record<number, WireMesh>;
+		wires: Record<number, Wire>;
 		andGates: Record<number, TwoInputsGate>;
 		orGates: Record<number, TwoInputsGate>;
 		xorGates: Record<number, TwoInputsGate>;
@@ -223,7 +223,7 @@ export class SimulationScene extends THREE.Scene {
 			(child) =>
 				child instanceof Gate ||
 				child instanceof Switch ||
-				child instanceof WireMesh,
+				child instanceof Wire,
 		);
 
 		const intersects = this.raycaster.intersectObjects(filterChildren, true);
@@ -231,7 +231,7 @@ export class SimulationScene extends THREE.Scene {
 		const object =
 			parent instanceof Gate ||
 			parent instanceof Switch ||
-			parent instanceof WireMesh
+			parent instanceof Wire
 				? parent
 				: null;
 

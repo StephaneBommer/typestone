@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { SIZE } from "../utils/const";
+import { SIZE } from "../utils/constants";
 
 export class Grid extends THREE.Group {
 	private materialLine: THREE.LineBasicMaterial;

@@ -1,7 +1,7 @@
 import type { SimulationDb } from "../../db/class";
+import type { SimulationScene } from "../../scene";
 import type { Pos } from "../../utils/types";
-import type { SimulationScene } from "./../scene";
-import type { Simulation } from "./../simulation";
+import type { Simulation } from "../simulation";
 
 export interface EditHandler {
 	click(pos: Pos): Promise<void>;

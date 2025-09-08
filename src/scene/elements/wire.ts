@@ -1,10 +1,10 @@
 import * as THREE from "three";
 import { CSG } from "three-csg-ts";
-import type { CreateWire } from "../db/type";
-import { SIZE } from "../utils/const";
-import { skewBoxGeometry } from "./skew";
+import type { CreateWire } from "../../db/types";
+import { SIZE } from "../../utils/constants";
+import { skewBoxGeometry } from "../geometry/skew";
 
-export class WireMesh extends THREE.Group {
+export class Wire extends THREE.Group {
 	public state: boolean;
 	private material: {
 		on: THREE.MeshStandardMaterial;

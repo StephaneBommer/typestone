@@ -1,11 +1,11 @@
 import * as THREE from "three";
-import type { CreateComponent, CreateWire } from "../../db/type";
+import type { CreateComponent, CreateWire } from "../../db/types";
 import { ComposantTypes } from "../../utils/types";
-import { OneInputGate } from "../components/gate/oneInputGate";
-import { TwoInputsGate } from "../components/gate/twoInputsGate";
-import { Switch } from "../components/switch";
-import { WireMesh } from "../wire";
-import type { Gate } from "./gate/gate";
+import type { Gate } from "./gate";
+import { OneInputGate } from "./gate/oneInputGate";
+import { TwoInputsGate } from "./gate/twoInputsGate";
+import { Switch } from "./switch";
+import { Wire } from "./wire";
 
 enum MaterialType {
 	WireOff = "WireOff",
@@ -40,12 +40,13 @@ export class ComponentsCreator {
 	}
 
 	public Wire(wire: CreateWire) {
-		return new WireMesh(wire, {
+		return new Wire(wire, {
 			off: this.material[MaterialType.WireOff],
 			on: this.material[MaterialType.WireOn],
 			delete: this.material[MaterialType.DeleteWire],
 		});
 	}
+
 	public AndGate(component: CreateComponent) {
 		return new TwoInputsGate(component, {
 			input: this.material[MaterialType.Input],

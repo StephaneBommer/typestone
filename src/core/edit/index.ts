@@ -1,7 +1,7 @@
 import type { SimulationDb } from "../../db/class";
+import type { SimulationScene } from "../../scene";
 import type { ComposantTypes, Pos } from "../../utils/types";
-import type { SimulationScene } from "./../scene";
-import type { Simulation } from "./../simulation";
+import type { Simulation } from "../simulation";
 import type { EditHandler } from "./base";
 import { ComponentEditHandler } from "./component";
 import { DeleteEditHandler } from "./delete";

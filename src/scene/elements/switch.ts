@@ -1,8 +1,8 @@
 import * as THREE from "three";
-import type { CreateComponent } from "../../db/type";
-import { SIZE } from "../../utils/const";
+import type { CreateComponent } from "../../db/types";
+import { SIZE } from "../../utils/constants";
 import { Orientation, type Pos } from "../../utils/types";
-import { skewBoxGeometry } from "../skew";
+import { skewBoxGeometry } from "../geometry/skew";
 
 export class Switch extends THREE.Group {
 	protected topMesh: THREE.Mesh;

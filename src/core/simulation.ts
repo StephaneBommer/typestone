@@ -10,20 +10,20 @@ import type {
 	GetComponents,
 	GetWires,
 	getAllComponents,
-} from "../db/type";
+} from "../db/types";
+import type { SimulationScene } from "../scene";
+import type { OneInputGate } from "../scene/elements/gate/oneInputGate";
+import type { TwoInputsGate } from "../scene/elements/gate/twoInputsGate";
+import { Switch } from "../scene/elements/switch";
+import type { Wire } from "../scene/elements/wire";
 import { ComposantTypes, ElementTypes } from "../utils/types";
-import type { OneInputGate } from "./components/gate/oneInputGate";
-import type { TwoInputsGate } from "./components/gate/twoInputsGate";
-import { Switch } from "./components/switch";
-import type { SimulationScene } from "./scene";
-import type { WireMesh } from "./wire";
 
 type ComponentMesh = TwoInputsGate | OneInputGate | Switch;
 
 export class Simulation {
 	public scene: SimulationScene;
 	public db: SimulationDb;
-	public wires: Record<number, WireMesh> = {};
+	public wires: Record<number, Wire> = {};
 	public components: Record<number, ComponentMesh> = {};
 	public rust_simulation: RustSimulation;
 

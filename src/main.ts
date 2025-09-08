@@ -1,11 +1,11 @@
 import * as THREE from "three";
 import init from "../rust/pkg/rust_counter";
+import { EditMode } from "./core/edit";
+import { InputHandler } from "./core/input";
+import { Simulation } from "./core/simulation";
 import { SimulationDb } from "./db/class";
-import { GridClickHandler } from "./three/click";
-import { EditMode } from "./three/edit";
-import { SimulationScene } from "./three/scene";
-import { Simulation } from "./three/simulation";
-import { AIM_HZ, MAX_DEEP, SIZE } from "./utils/const";
+import { SimulationScene } from "./scene";
+import { AIM_HZ, MAX_DEEP, SIZE } from "./utils/constants";
 
 (async () => {
 	await init();
@@ -30,7 +30,7 @@ import { AIM_HZ, MAX_DEEP, SIZE } from "./utils/const";
 	const editMode = new EditMode(scene, db, simulation);
 	editMode.onStopEditing(reset);
 
-	new GridClickHandler(scene, SIZE, editMode, simulation, db);
+	new InputHandler(scene, SIZE, editMode, simulation, db);
 
 	const clock = new THREE.Clock();
 	let fraction = 0;

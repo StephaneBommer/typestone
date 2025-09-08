@@ -4,7 +4,7 @@ import {
 	ElementTypes,
 	type WirePos,
 } from "../utils/types";
-import type { GetComponents, GetWires, MyDB, getAllComponents } from "./type";
+import type { GetComponents, GetWires, MyDB, getAllComponents } from "./types";
 
 export class SimulationDb {
 	private db!: IDBPDatabase<MyDB>;

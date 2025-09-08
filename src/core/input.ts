@@ -1,20 +1,16 @@
 import * as THREE from "three";
 import type { SimulationDb } from "../db/class";
+import type { SimulationScene } from "../scene";
 import { ComposantTypes, type Pos } from "../utils/types";
 import { type EditMode, EditModeEnum } from "./edit";
-import type { SimulationScene } from "./scene";
 import type { Simulation } from "./simulation";
-import type { WireMesh } from "./wire";
 
-export class GridClickHandler {
+export class InputHandler {
 	private raycaster: THREE.Raycaster;
 	private plane: THREE.Plane;
 	private scene: SimulationScene;
 	private gridSize: number;
 	private simulation: Simulation;
-	private wire: WireMesh | null = null;
-	private wirePath: number[][] = [];
-	private editing = false;
 	private editMode: EditMode;
 	private lastMousePos: Pos | null = null;
 	private db: SimulationDb;

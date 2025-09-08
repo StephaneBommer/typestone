@@ -1,19 +1,19 @@
+import type { Gate } from "../../scene/elements/gate";
+import type { Switch } from "../../scene/elements/switch";
+import { Wire } from "../../scene/elements/wire";
 import type { Pos } from "../../utils/types";
-import { WireMesh } from "../wire";
-import type { Gate } from "./../components/gate/gate";
-import type { Switch } from "./../components/switch";
 import { BaseEditHandler } from "./base";
 
 export class DeleteEditHandler extends BaseEditHandler {
 	private elementDeleting: {
-		mesh: Gate | Switch | WireMesh;
+		mesh: Gate | Switch | Wire;
 		id: number;
 	} | null = null;
 
 	async click(_: Pos) {
 		if (this.elementDeleting) {
 			this.scene.remove(this.elementDeleting.mesh);
-			if (this.elementDeleting.mesh instanceof WireMesh) {
+			if (this.elementDeleting.mesh instanceof Wire) {
 				this.db.deleteWire(this.elementDeleting.id);
 			} else {
 				this.db.deleteComponent(this.elementDeleting.id);
@@ -39,7 +39,7 @@ export class DeleteEditHandler extends BaseEditHandler {
 
 		this.elementDeleting = {
 			mesh:
-				object instanceof WireMesh
+				object instanceof Wire
 					? this.simulation.wires[object.key]
 					: this.simulation.components[object.key],
 			id: object.key,

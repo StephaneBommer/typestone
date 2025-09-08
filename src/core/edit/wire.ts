@@ -1,9 +1,9 @@
+import type { Wire } from "../../scene/elements/wire";
 import type { Pos, WirePos } from "../../utils/types";
-import type { WireMesh } from "./../wire";
 import { BaseEditHandler } from "./base";
 
 export class WireEditHandler extends BaseEditHandler {
-	private wire: WireMesh | null = null;
+	private wire: Wire | null = null;
 	private wirePath: WirePos = [];
 
 	async click([x, y]: Pos) {

@@ -1,6 +1,6 @@
+import type { Gate } from "../../scene/elements/gate";
+import type { Switch } from "../../scene/elements/switch";
 import { ComposantTypes, Orientation, type Pos } from "../../utils/types";
-import type { Gate } from "./../components/gate/gate";
-import type { Switch } from "./../components/switch";
 import { BaseEditHandler } from "./base";
 
 export class ComponentEditHandler extends BaseEditHandler {

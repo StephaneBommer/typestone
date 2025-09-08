@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { DISABLE_ISOMETRIC, SIZE, SKEW } from "../utils/const";
+import { DISABLE_ISOMETRIC, SIZE, SKEW } from "../../utils/constants";
 
 export class skewBoxGeometry extends THREE.BoxGeometry {
 	constructor(
