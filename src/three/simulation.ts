@@ -132,7 +132,11 @@ export class Simulation {
 	}
 	public Switch({ value: switch_, key }: GetComponents[number]) {
 		this.rust_simulation.add_switch(new Int32Array(switch_.positions), key);
-		const mesh = this.scene.creator.Switch(switch_.positions, key);
+		const mesh = this.scene.creator.Switch(
+			switch_.positions,
+			switch_.orientation,
+			key,
+		);
 		this.scene.add(mesh);
 		this.components[key] = mesh;
 	}

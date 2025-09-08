@@ -28,9 +28,7 @@ pub enum ComposantsEnum {
 
 #[wasm_bindgen]
 pub struct Simulation {
-    // composants: Vec<ComposantsEnum>,
     composants_map: HashMap<usize, ComposantsEnum>,
-    // wires: Vec<Wire>,
     wires_map: HashMap<usize, Wire>,
     wire_set: HashSet<usize>,
     wire_groups: Vec<WireGroup>,
@@ -41,9 +39,7 @@ pub struct Simulation {
 impl Simulation {
     pub fn new() -> Self {
         Simulation {
-            // composants: Vec::new(),
             composants_map: HashMap::new(),
-            // wires: Vec::new(),
             wires_map: HashMap::new(),
             wire_set: HashSet::new(),
             wire_groups: Vec::new(),

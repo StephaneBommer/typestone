@@ -29,11 +29,11 @@ export abstract class Gate extends THREE.Group {
 			topOff: THREE.MeshStandardMaterial;
 			delete: THREE.MeshStandardMaterial;
 		},
-		orientation?: Orientation,
+		orientation: Orientation,
 	) {
 		super();
 		this.material = material;
-		this.orientation = orientation ?? Orientation.Right;
+		this.orientation = orientation;
 		this.topMesh = this.createGate();
 		this.createInputs();
 		this.translateX(x * SIZE);

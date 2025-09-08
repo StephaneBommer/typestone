@@ -278,7 +278,7 @@ export class SimulationScene extends THREE.Scene {
 
 	public addSwitch(switches: GetComponents) {
 		switches.forEach(({ value, key }) => {
-			const mesh = this.creator.Switch(value.positions, key);
+			const mesh = this.creator.Switch(value.positions, value.orientation, key);
 			this.add(mesh);
 			this.components.switches[key] = mesh;
 		});

@@ -124,22 +124,13 @@ export class GridClickHandler {
 	private handleClick(event: MouseEvent) {
 		const positions = this.findPositionOnGrid(event);
 		if (!positions) return;
-		const [gridX, gridY] = positions;
 
 		this.editMode.click(positions);
 		if (this.editMode.editing) return;
 		const switchs = this.simulation.get_switchs();
 
 		switchs.forEach((swi) => {
-			const pos = [swi.pos[0] - 2, swi.pos[1]];
-			if (
-				gridX >= pos[0] - 1 &&
-				gridX <= pos[0] + 1 &&
-				gridY <= pos[1] + 1 &&
-				gridY >= pos[1] - 1
-			) {
-				this.simulation.toggle_switch(swi.comp_id);
-			}
+			swi.isClicked(positions) && this.simulation.toggle_switch(swi.comp_id);
 		});
 	}
 

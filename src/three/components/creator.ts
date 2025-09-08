@@ -155,14 +155,20 @@ export class ComponentsCreator {
 			orientation,
 		);
 	}
-	public Switch([x, y]: Pos, comp_id: number) {
-		return new Switch(x, y, comp_id, {
-			output: this.material[MaterialType.Output],
-			switch: this.material[MaterialType.Switch],
-			topOn: this.material[MaterialType.SwitchOn],
-			topOff: this.material[MaterialType.SwitchOff],
-			delete: this.material[MaterialType.Delete],
-		});
+	public Switch([x, y]: Pos, orientation: Orientation, comp_id: number) {
+		return new Switch(
+			x,
+			y,
+			comp_id,
+			{
+				output: this.material[MaterialType.Output],
+				switch: this.material[MaterialType.Switch],
+				topOn: this.material[MaterialType.SwitchOn],
+				topOff: this.material[MaterialType.SwitchOff],
+				delete: this.material[MaterialType.Delete],
+			},
+			orientation,
+		);
 	}
 
 	public createComponent(
@@ -186,7 +192,7 @@ export class ComponentsCreator {
 			case ComposantTypes.TimerGate:
 				return this.Timer(positions, orientation);
 			case ComposantTypes.Switch:
-				return this.Switch(positions, 1);
+				return this.Switch(positions, orientation, 1);
 			default:
 				throw new Error("Unknown component type");
 		}
@@ -235,11 +241,11 @@ export class ComponentsCreator {
 			}),
 			[MaterialType.Input]: new THREE.MeshStandardMaterial({
 				color: 0xe5b567,
-				depthWrite: false,
+				// depthWrite: false,
 			}),
 			[MaterialType.Output]: new THREE.MeshStandardMaterial({
 				color: 0xccddde,
-				depthWrite: false,
+				// depthWrite: false,
 			}),
 			[MaterialType.SwitchOn]: new THREE.MeshStandardMaterial({
 				color: 0xb4d273,
