@@ -42,7 +42,7 @@ export class InputHandler {
 			"mousemove",
 			this.handleMouseMove.bind(this),
 		);
-		window.addEventListener("keyup", (event) => {
+		window.addEventListener("keydown", (event) => {
 			if (event.key === "Escape") {
 				this.handlePressEscape(event);
 			}
@@ -57,6 +57,9 @@ export class InputHandler {
 			}
 			if (event.key === "d") {
 				this.editMode.setEditMode(EditModeEnum.Delete);
+			}
+			if (event.key === "s") {
+				this.editMode.setEditMode(EditModeEnum.Select);
 			}
 			if (event.key === "&") {
 				this.editMode.setComponentEditMode(
@@ -110,6 +113,26 @@ export class InputHandler {
 				this.db.resetDb();
 				this.editMode.stopEditing();
 			}
+			if (event.key === "Shift") {
+				this.editMode.setShift(true);
+			}
+			if (event.key === "ArrowRight") {
+				this.editMode.right();
+			}
+			if (event.key === "ArrowLeft") {
+				this.editMode.left();
+			}
+			if (event.key === "ArrowUp") {
+				this.editMode.up();
+			}
+			if (event.key === "ArrowDown") {
+				this.editMode.down();
+			}
+		});
+		window.addEventListener("keyup", (event) => {
+			if (event.key === "Shift") {
+				this.editMode.setShift(false);
+			}
 		});
 	}
 
@@ -121,7 +144,7 @@ export class InputHandler {
 		const positions = this.findPositionOnGrid(event);
 		if (!positions) return;
 
-		this.editMode.click(positions);
+		this.editMode.click(positions, event);
 		if (this.editMode.editing) return;
 		const switchs = this.simulation.get_switchs();
 

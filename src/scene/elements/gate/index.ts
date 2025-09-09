@@ -3,8 +3,9 @@ import type { CreateComponent } from "../../../db/types";
 import { SIZE } from "../../../utils/constants";
 import { Orientation } from "../../../utils/types";
 import { skewBoxGeometry } from "../../geometry/skew";
+import { ElementMesh } from "../index";
 
-export abstract class Gate extends THREE.Group {
+export abstract class Gate extends ElementMesh {
 	protected topMesh: THREE.Mesh;
 	protected material: {
 		input: THREE.MeshStandardMaterial;
@@ -14,11 +15,7 @@ export abstract class Gate extends THREE.Group {
 		topOff: THREE.MeshStandardMaterial;
 		delete: THREE.MeshStandardMaterial;
 	};
-	public state: boolean;
 	public orientation: Orientation;
-	public isDeteling = false;
-	private originalMaterials = new Map<THREE.Object3D, THREE.Material>();
-	public key?: number;
 
 	constructor(
 		{
@@ -51,29 +48,6 @@ export abstract class Gate extends THREE.Group {
 	public setState(state: boolean) {
 		this.state = state;
 		this.topMesh.material = state ? this.material.topOn : this.material.topOff;
-	}
-
-	public setDeleting(isDeleting: boolean) {
-		this.isDeteling = isDeleting;
-		this.traverse((child) => {
-			if (child instanceof THREE.Mesh) {
-				if (isDeleting) {
-					if (!this.originalMaterials.has(child)) {
-						this.originalMaterials.set(child, child.material);
-					}
-					child.material = this.material.delete;
-				} else {
-					const orig = this.originalMaterials.get(child);
-					if (orig) {
-						child.material = orig;
-					}
-				}
-			}
-		});
-
-		if (!isDeleting) {
-			this.originalMaterials.clear();
-		}
 	}
 
 	protected abstract createInputs(): void;

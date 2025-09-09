@@ -70,12 +70,54 @@ export class SimulationDb {
 		};
 	}
 
+	public async getComponentByKey(
+		key: number,
+	): Promise<GetComponents[number] | null> {
+		const value = await this.db.get(ElementTypes.Component, key);
+		if (!value) return null;
+		return { key, value };
+	}
+
+	public async getWireByKey(key: number): Promise<GetWires[number] | null> {
+		const value = await this.db.get(ElementTypes.Wire, key);
+		if (!value) return null;
+		return { key, value };
+	}
+
 	public async deleteComponent(id: number) {
 		await this.db.delete(ElementTypes.Component, id);
 	}
 
 	public async deleteWire(id: number) {
-		await this.db.delete(ElementTypes.Wire, id);
+		return await this.db.delete(ElementTypes.Wire, id);
+	}
+
+	public async updateWire(id: number, positions: WirePos) {
+		const existing = await this.db.get(ElementTypes.Wire, id);
+		if (!existing) return null;
+
+		const updated = { ...existing, positions };
+		await this.db.put(ElementTypes.Wire, updated, id);
+
+		return { key: id, value: updated };
+	}
+
+	public async updateComponent(
+		id: number,
+		data: {
+			type?: ComposantTypes;
+			positions?: [number, number];
+			orientation?: number;
+			ticks?: number;
+		},
+	) {
+		const existing = await this.db.get(ElementTypes.Component, id);
+		if (!existing) return null;
+
+		const updated = { ...existing, ...data };
+		await this.db.put(ElementTypes.Component, updated, id);
+
+		return { key: id, value: updated };
 	}
 
 	public async getElementFromPosition(position: [number, number]) {

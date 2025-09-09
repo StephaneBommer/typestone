@@ -5,12 +5,14 @@ import type { Simulation } from "../simulation";
 import type { EditHandler } from "./base";
 import { ComponentEditHandler } from "./component";
 import { DeleteEditHandler } from "./delete";
+import { SelectEditHandler } from "./select";
 import { WireEditHandler } from "./wire";
 
 export enum EditModeEnum {
 	Wire = 1,
 	Component = 2,
 	Delete = 3,
+	Select = 4,
 }
 
 export class EditMode {
@@ -31,14 +33,15 @@ export class EditMode {
 			[EditModeEnum.Wire]: new WireEditHandler(scene, db, simulation),
 			[EditModeEnum.Component]: this.componentHandler,
 			[EditModeEnum.Delete]: new DeleteEditHandler(scene, db, simulation),
+			[EditModeEnum.Select]: new SelectEditHandler(scene, db, simulation),
 		};
 
 		this.current = this.handlers[EditModeEnum.Wire];
 	}
 
-	async click(pos: Pos) {
+	async click(pos: Pos, event?: MouseEvent) {
 		if (!this.editing) return;
-		await this.current.click(pos);
+		await this.current.click(pos, event);
 	}
 
 	async mousemove(pos: Pos, event?: MouseEvent) {
@@ -49,6 +52,31 @@ export class EditMode {
 	async escape() {
 		if (!this.editing) return;
 		await this.current.escape();
+	}
+
+	public setShift(multi: boolean) {
+		if (!this.editing) return;
+		this.current.setShift(multi);
+	}
+
+	async right() {
+		if (!this.editing) return;
+		this.current.right();
+	}
+
+	async left() {
+		if (!this.editing) return;
+		this.current.left();
+	}
+
+	async up() {
+		if (!this.editing) return;
+		this.current.up();
+	}
+
+	async down() {
+		if (!this.editing) return;
+		this.current.down();
 	}
 
 	public toggleEditMode() {

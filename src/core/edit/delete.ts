@@ -1,12 +1,11 @@
-import type { Gate } from "../../scene/elements/gate";
-import type { Switch } from "../../scene/elements/switch";
+import type { ElementMesh } from "../../scene/elements";
 import { Wire } from "../../scene/elements/wire";
 import type { Pos } from "../../utils/types";
 import { BaseEditHandler } from "./base";
 
 export class DeleteEditHandler extends BaseEditHandler {
 	private elementDeleting: {
-		mesh: Gate | Switch | Wire;
+		mesh: ElementMesh;
 		id: number;
 	} | null = null;
 
@@ -53,4 +52,10 @@ export class DeleteEditHandler extends BaseEditHandler {
 			this.elementDeleting = null;
 		}
 	}
+
+	public setShift() {}
+	public right() {}
+	public left() {}
+	public up() {}
+	public down() {}
 }

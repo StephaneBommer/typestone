@@ -1,12 +1,13 @@
-import Stats from "stats.js";
 import * as THREE from "three";
 import {
 	EffectComposer,
 	OrbitControls,
+	OutlinePass,
 	RenderPass,
 	UnrealBloomPass,
 } from "three/examples/jsm/Addons.js";
-import { ComponentsCreator } from "./elements";
+import Stats from "three/examples/jsm/libs/stats.module.js";
+import { ComponentsCreator } from "./elements/creator";
 import { Gate } from "./elements/gate";
 import type { OneInputGate } from "./elements/gate/oneInputGate";
 import type { TwoInputsGate } from "./elements/gate/twoInputsGate";
@@ -29,6 +30,7 @@ export class SimulationScene extends THREE.Scene {
 	public stats: Stats;
 	public creator: ComponentsCreator;
 	public raycaster: THREE.Raycaster;
+	private outlinePass?: OutlinePass;
 	public components: {
 		wires: Record<number, Wire>;
 		andGates: Record<number, TwoInputsGate>;
@@ -153,6 +155,16 @@ export class SimulationScene extends THREE.Scene {
 		const composer = new EffectComposer(this.renderer);
 		composer.addPass(new RenderPass(this, this.camera));
 
+		this.outlinePass = new OutlinePass(
+			new THREE.Vector2(this.sizes.width, this.sizes.height),
+			this,
+			this.camera,
+		);
+		this.outlinePass.edgeStrength = 2;
+		this.outlinePass.edgeGlow = 0;
+		this.outlinePass.edgeThickness = 1.0;
+		composer.addPass(this.outlinePass);
+
 		const bloomPass = new UnrealBloomPass(
 			new THREE.Vector2(this.sizes.width, this.sizes.height),
 			0.4, // Strength
@@ -160,12 +172,13 @@ export class SimulationScene extends THREE.Scene {
 			0.2, // Threshold
 		);
 		composer.addPass(bloomPass);
+
 		return composer;
 	}
 
 	private createStats() {
 		const stats = new Stats();
-		stats.showPanel(0);
+		stats.showPanel(1);
 		document.body.appendChild(stats.dom);
 		return stats;
 	}
@@ -236,5 +249,10 @@ export class SimulationScene extends THREE.Scene {
 				: null;
 
 		return object;
+	}
+
+	public setOutlineObjects(objects: THREE.Object3D[]) {
+		if (!this.outlinePass) return;
+		this.outlinePass.selectedObjects = objects;
 	}
 }

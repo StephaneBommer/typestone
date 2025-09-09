@@ -80,4 +80,10 @@ export class WireEditHandler extends BaseEditHandler {
 		this.wire.clear();
 		this.wire = null;
 	}
+
+	public setShift() {}
+	public right() {}
+	public left() {}
+	public up() {}
+	public down() {}
 }

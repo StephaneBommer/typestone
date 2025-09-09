@@ -1,19 +1,17 @@
 import * as THREE from "three";
 import { CSG } from "three-csg-ts";
+import { ElementMesh } from ".";
 import type { CreateWire } from "../../db/types";
 import { SIZE } from "../../utils/constants";
 import { skewBoxGeometry } from "../geometry/skew";
 
-export class Wire extends THREE.Group {
-	public state: boolean;
-	private material: {
+export class Wire extends ElementMesh {
+	protected material: {
 		on: THREE.MeshStandardMaterial;
 		off: THREE.MeshStandardMaterial;
 		delete: THREE.MeshStandardMaterial;
 	};
-	public isDeteling = false;
-	private originalMaterials = new Map<THREE.Object3D, THREE.Material>();
-	public key?: number;
+
 	constructor(
 		{ key, value: { positions } }: CreateWire,
 		material: {
@@ -118,28 +116,5 @@ export class Wire extends THREE.Group {
 		return points
 			.slice(0, -1)
 			.map((point, index) => [point, points[index + 1]]);
-	}
-
-	public setDeleting(isDeleting: boolean) {
-		this.isDeteling = isDeleting;
-		this.traverse((child) => {
-			if (child instanceof THREE.Mesh) {
-				if (isDeleting) {
-					if (!this.originalMaterials.has(child)) {
-						this.originalMaterials.set(child, child.material);
-					}
-					child.material = this.material.delete;
-				} else {
-					const orig = this.originalMaterials.get(child);
-					if (orig) {
-						child.material = orig;
-					}
-				}
-			}
-		});
-
-		if (!isDeleting) {
-			this.originalMaterials.clear();
-		}
 	}
 }

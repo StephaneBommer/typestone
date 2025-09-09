@@ -4,9 +4,14 @@ import type { Pos } from "../../utils/types";
 import type { Simulation } from "../simulation";
 
 export interface EditHandler {
-	click(pos: Pos): Promise<void>;
+	click(pos: Pos, event?: MouseEvent): Promise<void>;
 	mousemove(pos: Pos, event?: MouseEvent): Promise<void>;
 	escape(): Promise<void>;
+	setShift(multi: boolean): void;
+	right(): void;
+	left(): void;
+	up(): void;
+	down(): void;
 }
 
 export abstract class BaseEditHandler implements EditHandler {
@@ -23,8 +28,12 @@ export abstract class BaseEditHandler implements EditHandler {
 		this.db = db;
 		this.simulation = simulation;
 	}
-
 	abstract click(pos: Pos): Promise<void>;
 	abstract mousemove(pos: Pos): Promise<void>;
 	abstract escape(): Promise<void>;
+	abstract setShift(multi: boolean): void;
+	abstract right(): void;
+	abstract left(): void;
+	abstract up(): void;
+	abstract down(): void;
 }

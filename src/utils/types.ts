@@ -21,3 +21,28 @@ export enum ComposantTypes {
 	XorGate = "XorGate",
 	LatchGate = "LatchGate",
 }
+
+export enum MaterialType {
+	WireOff = "WireOff",
+	WireOn = "WireOn",
+	// gates
+	AndGate = "AndGate",
+	OrGate = "OrGate",
+	XorGate = "XorGate",
+	NotGate = "NotGate",
+	BufferGate = "BufferGate",
+	LatchGate = "LatchGate",
+	TimerGate = "TimerGate",
+	GateOn = "GateOn",
+	GateOff = "GateOff",
+	// connectors
+	Input = "Input",
+	Output = "Output",
+	// Switch
+	SwitchOn = "SwitchOn",
+	SwitchOff = "SwitchOff",
+	Switch = "Switch",
+	// Editing
+	Delete = "Delete",
+	DeleteWire = "DeleteWire",
+}

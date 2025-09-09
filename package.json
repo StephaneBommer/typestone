@@ -16,7 +16,6 @@
 	"dependencies": {
 		"idb": "8.0.3",
 		"pixi.js": "8.13.1",
-		"stats.js": "1.0.0",
 		"three": "0.180.0",
 		"three-csg-ts": "3.2.0"
 	}

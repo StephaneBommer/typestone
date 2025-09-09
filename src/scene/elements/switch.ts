@@ -1,10 +1,11 @@
 import * as THREE from "three";
+import { ElementMesh } from ".";
 import type { CreateComponent } from "../../db/types";
 import { SIZE } from "../../utils/constants";
 import { Orientation, type Pos } from "../../utils/types";
 import { skewBoxGeometry } from "../geometry/skew";
 
-export class Switch extends THREE.Group {
+export class Switch extends ElementMesh {
 	protected topMesh: THREE.Mesh;
 	protected material: {
 		output: THREE.MeshStandardMaterial;
@@ -14,11 +15,8 @@ export class Switch extends THREE.Group {
 		delete: THREE.MeshStandardMaterial;
 	};
 	public pos: [number, number];
-	public state: boolean;
 	public orientation: Orientation;
-	public isDeteling = false;
-	private originalMaterials = new Map<THREE.Object3D, THREE.Material>();
-	public key?: number;
+
 	constructor(
 		{
 			key,
@@ -43,35 +41,11 @@ export class Switch extends THREE.Group {
 		this.topMesh = this.createGate();
 		this.translateX(x * SIZE);
 		this.translateY(y * -SIZE);
-		this.state = false;
 	}
 
 	public setState(state: boolean) {
 		this.state = state;
 		this.topMesh.material = state ? this.material.topOn : this.material.topOff;
-	}
-
-	public setDeleting(isDeleting: boolean) {
-		this.isDeteling = isDeleting;
-		this.traverse((child) => {
-			if (child instanceof THREE.Mesh) {
-				if (isDeleting) {
-					if (!this.originalMaterials.has(child)) {
-						this.originalMaterials.set(child, child.material);
-					}
-					child.material = this.material.delete;
-				} else {
-					const orig = this.originalMaterials.get(child);
-					if (orig) {
-						child.material = orig;
-					}
-				}
-			}
-		});
-
-		if (!isDeleting) {
-			this.originalMaterials.clear();
-		}
 	}
 
 	private createGate() {
