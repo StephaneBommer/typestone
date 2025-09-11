@@ -7,6 +7,7 @@ import {
 	UnrealBloomPass,
 } from "three/examples/jsm/Addons.js";
 import Stats from "three/examples/jsm/libs/stats.module.js";
+import { ZOOM } from "../utils/constants";
 import { Component } from "./elements/component";
 import type { OneInputGate } from "./elements/component/gate/oneInputGate";
 import type { TwoInputsGate } from "./elements/component/gate/twoInputsGate";
@@ -84,14 +85,13 @@ export class SimulationScene extends THREE.Scene {
 			this.sizes.width = window.innerWidth;
 			this.sizes.height = window.innerHeight;
 
-			this.camera.left = 0;
-			this.camera.right = this.sizes.width;
-			this.camera.top = 0;
-			this.camera.bottom = -this.sizes.height;
+			this.camera.left = -this.sizes.width / 2;
+			this.camera.right = this.sizes.width / 2;
+			this.camera.top = this.sizes.height / 2;
+			this.camera.bottom = -this.sizes.height / 2;
 
 			this.camera.updateProjectionMatrix();
 
-			this.grid.updateSize();
 			this.renderer.setSize(this.sizes.width, this.sizes.height);
 			this.composer.setSize(this.sizes.width, this.sizes.height);
 		});
@@ -112,15 +112,17 @@ export class SimulationScene extends THREE.Scene {
 
 	private createCamera() {
 		const camera = new THREE.OrthographicCamera(
-			0,
-			this.sizes.width,
-			0,
-			-this.sizes.height,
+			-this.sizes.width / 2,
+			this.sizes.width / 2,
+			this.sizes.height / 2,
+			-this.sizes.height / 2,
 			1,
-			10000,
+			100,
 		);
 
-		camera.position.set(0, 0, 1000);
+		camera.zoom = ZOOM;
+		camera.updateProjectionMatrix();
+		camera.position.set(0, 0, 100);
 		camera.lookAt(0, 0, 0);
 		this.add(camera);
 		return camera;

@@ -1,6 +1,7 @@
 import type { ElementMesh } from "../../scene/elements";
 import { Component } from "../../scene/elements/component";
 import { Wire } from "../../scene/elements/wire";
+import { COPY_OFFSET_X, COPY_OFFSET_Y } from "../../utils/constants";
 import type { ComposantTypes, Pos, WirePos } from "../../utils/types";
 import { BaseEditHandler } from "./base";
 
@@ -82,8 +83,8 @@ export class SelectEditHandler extends BaseEditHandler {
 			this.elementsCopied.map(async (el) => {
 				if (el.mesh instanceof Wire) {
 					const newPositions: WirePos = el.mesh.wirePos.map((pos) => [
-						pos[0] + 10,
-						pos[1] + 10,
+						pos[0] + COPY_OFFSET_X,
+						pos[1] + COPY_OFFSET_Y,
 					]);
 
 					const newId = await this.db.addWire(newPositions);
@@ -97,7 +98,10 @@ export class SelectEditHandler extends BaseEditHandler {
 				}
 
 				if (el.mesh instanceof Component) {
-					const newPos: Pos = [el.mesh.pos[0] + 10, el.mesh.pos[1] + 10];
+					const newPos: Pos = [
+						el.mesh.pos[0] + COPY_OFFSET_X,
+						el.mesh.pos[1] + COPY_OFFSET_Y,
+					];
 					const newId = await this.db.addComponent(
 						el.mesh.type as ComposantTypes,
 						newPos,

@@ -110,7 +110,7 @@ export class InputHandler {
 				);
 			}
 			if (event.key === "Backspace") {
-				this.db.resetDb();
+				// this.db.resetDb();
 				this.editMode.stopEditing();
 			}
 			if (event.key === "Shift") {

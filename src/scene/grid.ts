@@ -31,15 +31,11 @@ export class Grid extends THREE.Group {
 		});
 
 		const geometry = new THREE.PlaneGeometry(
-			this.scene.sizes.width,
-			this.scene.sizes.height,
+			this.scene.sizes.width * 10,
+			this.scene.sizes.height * 10,
 		);
 		this.mesh = new THREE.Mesh(geometry, this.material);
-		this.mesh.position.set(
-			this.scene.sizes.width / 2,
-			-this.scene.sizes.height / 2,
-			0,
-		);
+		this.mesh.position.set(0, 0, 0);
 
 		this.add(this.mesh);
 	}
@@ -61,9 +57,5 @@ export class Grid extends THREE.Group {
 			-this.scene.sizes.height / 2 + pos.y,
 			0,
 		);
-	}
-
-	public updateSize() {
-		this.mesh.scale.set(this.scene.sizes.width, this.scene.sizes.height, 1);
 	}
 }

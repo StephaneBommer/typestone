@@ -15,7 +15,7 @@ export class ComponentEditHandler extends BaseEditHandler {
 		}
 
 		const ticks =
-			this.componentMode === ComposantTypes.TimerGate ? 100 : undefined;
+			this.componentMode === ComposantTypes.TimerGate ? 1 : undefined;
 		const { id } = await this.db.addComponent(
 			this.componentMode,
 			[x, y],
