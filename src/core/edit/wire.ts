@@ -86,4 +86,6 @@ export class WireEditHandler extends BaseEditHandler {
 	public left() {}
 	public up() {}
 	public down() {}
+	public copy() {}
+	public paste() {}
 }

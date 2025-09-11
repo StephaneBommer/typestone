@@ -1,11 +1,15 @@
 import * as THREE from "three";
-import { ElementMesh } from ".";
-import type { CreateComponent } from "../../db/types";
-import { SIZE } from "../../utils/constants";
-import { Orientation, type Pos } from "../../utils/types";
-import { skewBoxGeometry } from "../geometry/skew";
+import { Component } from ".";
+import type { CreateComponent } from "../../../db/types";
+import { SIZE } from "../../../utils/constants";
+import {
+	type ComposantTypes,
+	Orientation,
+	type Pos,
+} from "../../../utils/types";
+import { skewBoxGeometry } from "../../geometry/skew";
 
-export class Switch extends ElementMesh {
+export class Switch extends Component {
 	protected topMesh: THREE.Mesh;
 	protected material: {
 		output: THREE.MeshStandardMaterial;
@@ -14,13 +18,16 @@ export class Switch extends ElementMesh {
 		topOff: THREE.MeshStandardMaterial;
 		delete: THREE.MeshStandardMaterial;
 	};
-	public pos: [number, number];
+	public pos: Pos;
 	public orientation: Orientation;
+	public type: ComposantTypes;
+	public ticks?: number;
 
 	constructor(
 		{
 			key,
 			value: {
+				type,
 				positions: [x, y],
 				orientation,
 			},
@@ -36,6 +43,7 @@ export class Switch extends ElementMesh {
 		super();
 		this.key = key;
 		this.pos = [x, y];
+		this.type = type as ComposantTypes;
 		this.material = material;
 		this.orientation = orientation;
 		this.topMesh = this.createGate();

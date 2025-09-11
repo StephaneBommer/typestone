@@ -1,10 +1,11 @@
 import * as THREE from "three";
 import type { CreateComponent, CreateWire } from "../../db/types";
 import { ComposantTypes, MaterialType } from "../../utils/types";
-import type { Gate } from "./gate";
-import { OneInputGate } from "./gate/oneInputGate";
-import { TwoInputsGate } from "./gate/twoInputsGate";
-import { Switch } from "./switch";
+import { Switch } from "./component/switch";
+
+import type { Component } from "./component";
+import { OneInputGate } from "./component/gate/oneInputGate";
+import { TwoInputsGate } from "./component/gate/twoInputsGate";
 import { Wire } from "./wire";
 
 export class ComponentsCreator {
@@ -103,7 +104,7 @@ export class ComponentsCreator {
 		});
 	}
 
-	public createComponent(component: CreateComponent): Gate | Switch {
+	public createComponent(component: CreateComponent): Component {
 		switch (component.value.type) {
 			case ComposantTypes.AndGate:
 				return this.AndGate(component);

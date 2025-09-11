@@ -1,11 +1,15 @@
 import * as THREE from "three";
-import type { CreateComponent } from "../../../db/types";
-import { SIZE } from "../../../utils/constants";
-import { Orientation } from "../../../utils/types";
-import { skewBoxGeometry } from "../../geometry/skew";
-import { ElementMesh } from "../index";
+import type { CreateComponent } from "../../../../db/types";
+import { SIZE } from "../../../../utils/constants";
+import {
+	type ComposantTypes,
+	Orientation,
+	type Pos,
+} from "../../../../utils/types";
+import { skewBoxGeometry } from "../../../geometry/skew";
+import { Component } from "../../component";
 
-export abstract class Gate extends ElementMesh {
+export abstract class Gate extends Component {
 	protected topMesh: THREE.Mesh;
 	protected material: {
 		input: THREE.MeshStandardMaterial;
@@ -15,14 +19,19 @@ export abstract class Gate extends ElementMesh {
 		topOff: THREE.MeshStandardMaterial;
 		delete: THREE.MeshStandardMaterial;
 	};
+	public pos: Pos;
 	public orientation: Orientation;
+	public type: ComposantTypes;
+	public ticks?: number;
 
 	constructor(
 		{
 			key,
 			value: {
+				type,
 				positions: [x, y],
 				orientation,
+				...value
 			},
 		}: CreateComponent,
 		material: {
@@ -37,6 +46,9 @@ export abstract class Gate extends ElementMesh {
 		super();
 		this.material = material;
 		this.orientation = orientation;
+		this.pos = [x, y];
+		this.ticks = "ticks" in value ? value.ticks : undefined;
+		this.type = type as ComposantTypes;
 		this.topMesh = this.createGate();
 		this.createInputs();
 		this.translateX(x * SIZE);

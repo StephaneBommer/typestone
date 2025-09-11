@@ -7,16 +7,16 @@ import {
 	UnrealBloomPass,
 } from "three/examples/jsm/Addons.js";
 import Stats from "three/examples/jsm/libs/stats.module.js";
+import { Component } from "./elements/component";
+import type { OneInputGate } from "./elements/component/gate/oneInputGate";
+import type { TwoInputsGate } from "./elements/component/gate/twoInputsGate";
+import type { Switch } from "./elements/component/switch";
 import { ComponentsCreator } from "./elements/creator";
-import { Gate } from "./elements/gate";
-import type { OneInputGate } from "./elements/gate/oneInputGate";
-import type { TwoInputsGate } from "./elements/gate/twoInputsGate";
-import { Switch } from "./elements/switch";
 import { Wire } from "./elements/wire";
 import { Grid } from "./grid";
 
 export class SimulationScene extends THREE.Scene {
-	private sizes: { width: number; height: number };
+	public sizes: { width: number; height: number };
 	public canvas: HTMLCanvasElement;
 	public grid: Grid;
 	public camera: THREE.OrthographicCamera;
@@ -91,6 +91,7 @@ export class SimulationScene extends THREE.Scene {
 
 			this.camera.updateProjectionMatrix();
 
+			this.grid.updateSize();
 			this.renderer.setSize(this.sizes.width, this.sizes.height);
 			this.composer.setSize(this.sizes.width, this.sizes.height);
 		});
@@ -104,7 +105,7 @@ export class SimulationScene extends THREE.Scene {
 	}
 
 	private createGrid() {
-		const grid = new Grid(window.innerWidth, window.innerHeight);
+		const grid = new Grid(this);
 		this.add(grid);
 		return grid;
 	}
@@ -118,7 +119,9 @@ export class SimulationScene extends THREE.Scene {
 			1,
 			10000,
 		);
-		camera.position.z = 1000;
+
+		camera.position.set(0, 0, 1000);
+		camera.lookAt(0, 0, 0);
 		this.add(camera);
 		return camera;
 	}
@@ -233,20 +236,13 @@ export class SimulationScene extends THREE.Scene {
 		this.raycaster.setFromCamera(mouse, this.camera);
 
 		const filterChildren = this.children.filter(
-			(child) =>
-				child instanceof Gate ||
-				child instanceof Switch ||
-				child instanceof Wire,
+			(child) => child instanceof Component || child instanceof Wire,
 		);
 
 		const intersects = this.raycaster.intersectObjects(filterChildren, true);
 		const parent = intersects.length > 0 ? intersects[0].object.parent : null;
 		const object =
-			parent instanceof Gate ||
-			parent instanceof Switch ||
-			parent instanceof Wire
-				? parent
-				: null;
+			parent instanceof Component || parent instanceof Wire ? parent : null;
 
 		return object;
 	}

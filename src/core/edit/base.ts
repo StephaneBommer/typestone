@@ -12,6 +12,8 @@ export interface EditHandler {
 	left(): void;
 	up(): void;
 	down(): void;
+	copy(): void;
+	paste(): void;
 }
 
 export abstract class BaseEditHandler implements EditHandler {
@@ -36,4 +38,6 @@ export abstract class BaseEditHandler implements EditHandler {
 	abstract left(): void;
 	abstract up(): void;
 	abstract down(): void;
+	abstract copy(): void;
+	abstract paste(): void;
 }

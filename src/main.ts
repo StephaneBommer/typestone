@@ -53,6 +53,8 @@ import { AIM_HZ, MAX_DEEP, SIZE } from "./utils/constants";
 			simulation.update_simulation(new_simulation_state);
 		}
 
+		scene.grid.update(scene.camera);
+
 		scene.controls.update();
 		scene.composer.render();
 		window.requestAnimationFrame(tick);

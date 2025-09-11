@@ -59,24 +59,34 @@ export class EditMode {
 		this.current.setShift(multi);
 	}
 
-	async right() {
+	public right() {
 		if (!this.editing) return;
 		this.current.right();
 	}
 
-	async left() {
+	public left() {
 		if (!this.editing) return;
 		this.current.left();
 	}
 
-	async up() {
+	public up() {
 		if (!this.editing) return;
 		this.current.up();
 	}
 
-	async down() {
+	public down() {
 		if (!this.editing) return;
 		this.current.down();
+	}
+
+	public copy() {
+		if (!this.editing) return;
+		this.current.copy();
+	}
+
+	public paste() {
+		if (!this.editing) return;
+		this.current.paste();
 	}
 
 	public toggleEditMode() {
@@ -93,8 +103,8 @@ export class EditMode {
 		this.scene.grid.editMode(true);
 	}
 
-	public stopEditing() {
-		this.escape();
+	public async stopEditing() {
+		await this.escape();
 		this.editing = false;
 		this.scene.grid.editMode(false);
 		this.componentHandler.clearAll();
@@ -105,8 +115,8 @@ export class EditMode {
 		this.stopEditingCallbacks.push(callback);
 	}
 
-	public setEditMode(mode: EditModeEnum) {
-		this.escape();
+	public async setEditMode(mode: EditModeEnum) {
+		await this.escape();
 		if (!this.editing) this.startEditing(mode);
 		this.current = this.handlers[mode];
 	}

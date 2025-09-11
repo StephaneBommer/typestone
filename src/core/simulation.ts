@@ -12,19 +12,16 @@ import type {
 	getAllComponents,
 } from "../db/types";
 import type { SimulationScene } from "../scene";
-import type { OneInputGate } from "../scene/elements/gate/oneInputGate";
-import type { TwoInputsGate } from "../scene/elements/gate/twoInputsGate";
-import { Switch } from "../scene/elements/switch";
+import type { Component } from "../scene/elements/component";
+import { Switch } from "../scene/elements/component/switch";
 import type { Wire } from "../scene/elements/wire";
 import { ComposantTypes, ElementTypes } from "../utils/types";
-
-type ComponentMesh = TwoInputsGate | OneInputGate | Switch;
 
 export class Simulation {
 	public scene: SimulationScene;
 	public db: SimulationDb;
 	public wires: Record<number, Wire> = {};
-	public components: Record<number, ComponentMesh> = {};
+	public components: Record<number, Component> = {};
 	public rust_simulation: RustSimulation;
 
 	constructor(scene: SimulationScene, db: SimulationDb) {
@@ -54,6 +51,7 @@ export class Simulation {
 		const mesh = this.scene.creator.AndGate(component);
 		this.scene.add(mesh);
 		this.components[key] = mesh;
+		return mesh;
 	}
 	public OrGate(component: CreateSimulationComponent) {
 		const { value: orGate, key } = component;
@@ -65,6 +63,7 @@ export class Simulation {
 		const mesh = this.scene.creator.OrGate(component);
 		this.scene.add(mesh);
 		this.components[key] = mesh;
+		return mesh;
 	}
 	public XorGate(component: CreateSimulationComponent) {
 		const { value: xorGate, key } = component;
@@ -76,6 +75,7 @@ export class Simulation {
 		const mesh = this.scene.creator.XorGate(component);
 		this.scene.add(mesh);
 		this.components[key] = mesh;
+		return mesh;
 	}
 	public NotGate(component: CreateSimulationComponent) {
 		const { value: notGate, key } = component;
@@ -87,6 +87,7 @@ export class Simulation {
 		const mesh = this.scene.creator.NotGate(component);
 		this.scene.add(mesh);
 		this.components[key] = mesh;
+		return mesh;
 	}
 	public BufferGate(component: CreateSimulationComponent) {
 		const { value: bufferGate, key } = component;
@@ -98,6 +99,7 @@ export class Simulation {
 		const mesh = this.scene.creator.BufferGate(component);
 		this.scene.add(mesh);
 		this.components[key] = mesh;
+		return mesh;
 	}
 	public Latch(component: GetComponents[number]) {
 		const { value: latchGate, key } = component;
@@ -109,6 +111,7 @@ export class Simulation {
 		const mesh = this.scene.creator.Latch(component);
 		this.scene.add(mesh);
 		this.components[key] = mesh;
+		return mesh;
 	}
 	public Timer(component: CreateSimulationComponent) {
 		const { value: timer, key } = component;
@@ -122,6 +125,7 @@ export class Simulation {
 		const mesh = this.scene.creator.Timer(component);
 		this.scene.add(mesh);
 		this.components[key] = mesh;
+		return mesh;
 	}
 	public Switch(component: CreateSimulationComponent) {
 		const { value: switch_, key } = component;
@@ -129,6 +133,7 @@ export class Simulation {
 		const mesh = this.scene.creator.Switch(component);
 		this.scene.add(mesh);
 		this.components[key] = mesh;
+		return mesh;
 	}
 
 	public update_simulation(tickResult: TickResults) {
@@ -173,35 +178,29 @@ export class Simulation {
 	}
 
 	public addWire(wire: GetWires[number]) {
-		this.Wire(wire);
+		return this.Wire(wire);
 	}
 
 	public addComponent(component: CreateSimulationComponent) {
 		switch (component.value.type) {
 			case ComposantTypes.AndGate:
-				this.AndGate(component);
-				break;
+				return this.AndGate(component);
 			case ComposantTypes.OrGate:
-				this.OrGate(component);
-				break;
+				return this.OrGate(component);
 			case ComposantTypes.XorGate:
-				this.XorGate(component);
-				break;
+				return this.XorGate(component);
 			case ComposantTypes.NotGate:
-				this.NotGate(component);
-				break;
+				return this.NotGate(component);
 			case ComposantTypes.BufferGate:
-				this.BufferGate(component);
-				break;
+				return this.BufferGate(component);
 			case ComposantTypes.LatchGate:
-				this.Latch(component);
-				break;
+				return this.Latch(component);
 			case ComposantTypes.TimerGate:
-				this.Timer(component);
-				break;
+				return this.Timer(component);
 			case ComposantTypes.Switch:
-				this.Switch(component);
-				break;
+				return this.Switch(component);
+			default:
+				throw new Error("Unknown component type");
 		}
 	}
 

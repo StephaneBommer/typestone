@@ -3,6 +3,7 @@ import { CSG } from "three-csg-ts";
 import { ElementMesh } from ".";
 import type { CreateWire } from "../../db/types";
 import { SIZE } from "../../utils/constants";
+import type { WirePos } from "../../utils/types";
 import { skewBoxGeometry } from "../geometry/skew";
 
 export class Wire extends ElementMesh {
@@ -11,6 +12,7 @@ export class Wire extends ElementMesh {
 		off: THREE.MeshStandardMaterial;
 		delete: THREE.MeshStandardMaterial;
 	};
+	public wirePos: WirePos;
 
 	constructor(
 		{ key, value: { positions } }: CreateWire,
@@ -23,6 +25,7 @@ export class Wire extends ElementMesh {
 		super();
 		this.material = material;
 		this.createGeometry(positions);
+		this.wirePos = positions;
 		this.state = false;
 		this.children.forEach((child) => {
 			if (child instanceof THREE.Mesh) {
@@ -116,5 +119,11 @@ export class Wire extends ElementMesh {
 		return points
 			.slice(0, -1)
 			.map((point, index) => [point, points[index + 1]]);
+	}
+
+	public translate(x: number, y: number) {
+		this.translateX(x * SIZE);
+		this.translateY(y * -SIZE);
+		this.wirePos = this.wirePos.map((pos) => [pos[0] + x, pos[1] + y]);
 	}
 }

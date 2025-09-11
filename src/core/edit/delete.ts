@@ -58,4 +58,6 @@ export class DeleteEditHandler extends BaseEditHandler {
 	public left() {}
 	public up() {}
 	public down() {}
+	public copy() {}
+	public paste() {}
 }

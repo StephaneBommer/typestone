@@ -11,7 +11,8 @@
 	"devDependencies": {
 		"@types/three": "0.180.0",
 		"typescript": "5.9.2",
-		"vite": "7.1.5"
+		"vite": "7.1.5",
+		"vite-plugin-glsl": "^1.5.1"
 	},
 	"dependencies": {
 		"idb": "8.0.3",

@@ -42,9 +42,9 @@ export class InputHandler {
 			"mousemove",
 			this.handleMouseMove.bind(this),
 		);
-		window.addEventListener("keydown", (event) => {
+		window.addEventListener("keydown", async (event) => {
 			if (event.key === "Escape") {
-				this.handlePressEscape(event);
+				this.editMode.escape();
 			}
 			if (event.key === "r") {
 				this.editMode.rotateComponent(this.lastMousePos);
@@ -128,16 +128,21 @@ export class InputHandler {
 			if (event.key === "ArrowDown") {
 				this.editMode.down();
 			}
+
+			if ((event.ctrlKey || event.metaKey) && event.key === "c") {
+				this.editMode.copy();
+			}
+
+			// Coller
+			if ((event.ctrlKey || event.metaKey) && event.key === "v") {
+				this.editMode.paste();
+			}
 		});
 		window.addEventListener("keyup", (event) => {
 			if (event.key === "Shift") {
 				this.editMode.setShift(false);
 			}
 		});
-	}
-
-	private handlePressEscape(event: KeyboardEvent) {
-		this.editMode.escape();
 	}
 
 	private handleClick(event: MouseEvent) {

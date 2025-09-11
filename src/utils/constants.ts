@@ -1,4 +1,4 @@
-export const SIZE = 10;
+export const SIZE = 14;
 export const SKEW = SIZE * 0.2;
 export const GRID_SCALE = 4;
 export const AIM_HZ = 100;

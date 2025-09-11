@@ -1,11 +1,10 @@
-import type { Gate } from "../../scene/elements/gate";
-import type { Switch } from "../../scene/elements/switch";
+import type { Component } from "../../scene/elements/component";
 import { ComposantTypes, Orientation, type Pos } from "../../utils/types";
 import { BaseEditHandler } from "./base";
 
 export class ComponentEditHandler extends BaseEditHandler {
-	private component: Gate | Switch | null = null;
-	private newComponents: (Gate | Switch)[] = [];
+	private component: Component | null = null;
+	private newComponents: Component[] = [];
 	private orientation: Orientation = Orientation.Right;
 	private componentMode: ComposantTypes = ComposantTypes.BufferGate;
 
@@ -56,18 +55,18 @@ export class ComponentEditHandler extends BaseEditHandler {
 		this.component = null;
 	}
 
-	setComponentMode(mode: ComposantTypes, pos: Pos | null) {
-		this.escape();
+	public async setComponentMode(mode: ComposantTypes, pos: Pos | null) {
+		await this.escape();
 		this.componentMode = mode;
 		if (pos) this.mousemove(pos);
 	}
 
-	rotateComponent(pos: Pos | null) {
+	public rotateComponent(pos: Pos | null) {
 		this.orientation = (this.orientation + 1) % 4;
 		if (pos) this.mousemove(pos);
 	}
 
-	clearAll() {
+	public clearAll() {
 		this.newComponents.forEach((comp) => {
 			this.scene.remove(comp);
 			comp.clear();
@@ -80,4 +79,6 @@ export class ComponentEditHandler extends BaseEditHandler {
 	public left() {}
 	public up() {}
 	public down() {}
+	public copy() {}
+	public paste() {}
 }
