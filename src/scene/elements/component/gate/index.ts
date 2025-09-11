@@ -57,11 +57,6 @@ export abstract class Gate extends Component {
 		this.key = key;
 	}
 
-	public setState(state: boolean) {
-		this.state = state;
-		this.topMesh.material = state ? this.material.topOn : this.material.topOff;
-	}
-
 	protected abstract createInputs(): void;
 
 	private createGate() {

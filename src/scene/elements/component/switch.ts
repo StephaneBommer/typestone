@@ -51,11 +51,6 @@ export class Switch extends Component {
 		this.translateY(y * -SIZE);
 	}
 
-	public setState(state: boolean) {
-		this.state = state;
-		this.topMesh.material = state ? this.material.topOn : this.material.topOff;
-	}
-
 	private createGate() {
 		const params = this.getGeometryParams();
 
