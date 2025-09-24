@@ -7,7 +7,9 @@ import {
 	UnrealBloomPass,
 } from "three/examples/jsm/Addons.js";
 import Stats from "three/examples/jsm/libs/stats.module.js";
-import { ZOOM } from "../utils/constants";
+import { FilmPass } from "three/examples/jsm/postprocessing/FilmPass.js";
+import { SIZE, SKEW, ZOOM } from "../utils/constants";
+import type { Pos } from "../utils/types";
 import { Component } from "./elements/component";
 import type { OneInputGate } from "./elements/component/gate/oneInputGate";
 import type { TwoInputsGate } from "./elements/component/gate/twoInputsGate";
@@ -15,6 +17,7 @@ import type { Switch } from "./elements/component/switch";
 import { ComponentsCreator } from "./elements/creator";
 import { Wire } from "./elements/wire";
 import { Grid } from "./grid";
+import { SelectionMesh } from "./selection";
 
 export class SimulationScene extends THREE.Scene {
 	public sizes: { width: number; height: number };
@@ -32,6 +35,7 @@ export class SimulationScene extends THREE.Scene {
 	public creator: ComponentsCreator;
 	public raycaster: THREE.Raycaster;
 	private outlinePass?: OutlinePass;
+	public selectionMesh?: SelectionMesh;
 	public components: {
 		wires: Record<number, Wire>;
 		andGates: Record<number, TwoInputsGate>;
@@ -61,8 +65,8 @@ export class SimulationScene extends THREE.Scene {
 			height: window.innerHeight,
 		};
 		this.canvas = this.createCanvas();
-		this.grid = this.createGrid();
 		this.camera = this.createCamera();
+		this.grid = this.createGrid();
 		this.lights = this.createLigths();
 		this.controls = this.createControls();
 		this.renderer = this.createRenderer();
@@ -170,11 +174,14 @@ export class SimulationScene extends THREE.Scene {
 		this.outlinePass.edgeThickness = 1.0;
 		composer.addPass(this.outlinePass);
 
+		const filmPass = new FilmPass(0.1, false);
+		composer.addPass(filmPass);
+
 		const bloomPass = new UnrealBloomPass(
 			new THREE.Vector2(this.sizes.width, this.sizes.height),
-			0.4, // Strength
-			0.8, // Radius
-			0.2, // Threshold
+			0.39,
+			0.8,
+			0.2,
 		);
 		composer.addPass(bloomPass);
 
@@ -229,11 +236,11 @@ export class SimulationScene extends THREE.Scene {
 		localStorage.setItem("targetZ", this.controls.target.z.toString());
 	};
 
-	public intersectElements(event: MouseEvent) {
+	public intersectElements(pos: Pos) {
 		const rect = this.canvas.getBoundingClientRect();
 		const mouse = new THREE.Vector2(
-			((event.clientX - rect.left) / rect.width) * 2 - 1,
-			-((event.clientY - rect.top) / rect.height) * 2 + 1,
+			((pos[0] - rect.left) / rect.width) * 2 - 1,
+			-((pos[1] - rect.top) / rect.height) * 2 + 1,
 		);
 		this.raycaster.setFromCamera(mouse, this.camera);
 
@@ -249,8 +256,149 @@ export class SimulationScene extends THREE.Scene {
 		return object;
 	}
 
+	public intersectElementsInRect(start: Pos, end: Pos) {
+		const filterChildren = this.children.filter(
+			(child) => child instanceof Component || child instanceof Wire,
+		);
+
+		const margin = SIZE * SKEW + SKEW * 0.1 * 0;
+
+		const rectMinX = Math.min(start[0], end[0]) + margin;
+		const rectMaxX = Math.max(start[0], end[0]) - margin;
+		const rectMinY = Math.min(start[1], end[1]) + margin;
+		const rectMaxY = Math.max(start[1], end[1]) - margin;
+
+		const selected: (Component | Wire)[] = [];
+
+		// helper rect
+		const rectEdges: [[number, number], [number, number]][] = [
+			[
+				[rectMinX, rectMinY],
+				[rectMaxX, rectMinY],
+			],
+			[
+				[rectMaxX, rectMinY],
+				[rectMaxX, rectMaxY],
+			],
+			[
+				[rectMaxX, rectMaxY],
+				[rectMinX, rectMaxY],
+			],
+			[
+				[rectMinX, rectMaxY],
+				[rectMinX, rectMinY],
+			],
+		];
+
+		const rectContains = (x: number, y: number) =>
+			x >= rectMinX && x <= rectMaxX && y >= rectMinY && y <= rectMaxY;
+
+		filterChildren.forEach((child) => {
+			let intersects = false;
+
+			child.traverse((obj) => {
+				if ((obj as THREE.Mesh).isMesh) {
+					const geometry = (obj as THREE.Mesh).geometry;
+					const position = geometry.attributes.position;
+
+					const vertex = new THREE.Vector3();
+					const vertices: [number, number][] = [];
+
+					for (let i = 0; i < position.count; i++) {
+						vertex.fromBufferAttribute(position, i);
+						obj.localToWorld(vertex);
+
+						const gridX = Math.floor(vertex.x / SIZE);
+						const gridY = -Math.floor(vertex.y / SIZE);
+						vertices.push([gridX, gridY]);
+
+						if (rectContains(gridX, gridY)) {
+							intersects = true;
+							break;
+						}
+					}
+
+					if (!intersects && vertices.length > 1) {
+						for (let i = 0; i < vertices.length; i++) {
+							const a = vertices[i];
+							const b = vertices[(i + 1) % vertices.length];
+
+							if (
+								this.segmentIntersectsRect(
+									a,
+									b,
+									rectEdges,
+									rectMinX,
+									rectMaxX,
+									rectMinY,
+									rectMaxY,
+								)
+							) {
+								intersects = true;
+								break;
+							}
+						}
+					}
+				}
+			});
+
+			if (intersects) selected.push(child as Component | Wire);
+		});
+
+		return selected;
+	}
+
+	private segmentIntersectsRect(
+		a: [number, number],
+		b: [number, number],
+		rectEdges: [[number, number], [number, number]][],
+		minX: number,
+		maxX: number,
+		minY: number,
+		maxY: number,
+	): boolean {
+		if (a[0] < minX && b[0] < minX) return false;
+		if (a[0] > maxX && b[0] > maxX) return false;
+		if (a[1] < minY && b[1] < minY) return false;
+		if (a[1] > maxY && b[1] > maxY) return false;
+
+		return rectEdges.some(([p1, p2]) => this.segmentsIntersect(a, b, p1, p2));
+	}
+
+	private segmentsIntersect(
+		a: [number, number],
+		b: [number, number],
+		c: [number, number],
+		d: [number, number],
+	): boolean {
+		function ccw(
+			p1: [number, number],
+			p2: [number, number],
+			p3: [number, number],
+		) {
+			return (
+				(p3[1] - p1[1]) * (p2[0] - p1[0]) > (p2[1] - p1[1]) * (p3[0] - p1[0])
+			);
+		}
+		return ccw(a, c, d) !== ccw(b, c, d) && ccw(a, b, c) !== ccw(a, b, d);
+	}
+
 	public setOutlineObjects(objects: THREE.Object3D[]) {
 		if (!this.outlinePass) return;
 		this.outlinePass.selectedObjects = objects;
+	}
+
+	public setSelection(start: Pos, end: Pos) {
+		if (!this.selectionMesh) {
+			this.selectionMesh = new SelectionMesh();
+			this.add(this.selectionMesh);
+		}
+		this.selectionMesh.updateCorners(start, end);
+	}
+
+	public clearSelection() {
+		if (!this.selectionMesh) return;
+		this.remove(this.selectionMesh);
+		this.selectionMesh = undefined;
 	}
 }

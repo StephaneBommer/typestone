@@ -65,7 +65,7 @@ export class WireEditHandler extends BaseEditHandler {
 		this.scene.add(this.wire);
 	}
 
-	async escape() {
+	private async createWire() {
 		if (!this.wire) return;
 		this.wirePath.pop();
 
@@ -81,11 +81,11 @@ export class WireEditHandler extends BaseEditHandler {
 		this.wire = null;
 	}
 
-	public setShift() {}
-	public right() {}
-	public left() {}
-	public up() {}
-	public down() {}
-	public copy() {}
-	public paste() {}
+	async escape() {
+		this.createWire();
+	}
+
+	public apply() {
+		this.createWire();
+	}
 }

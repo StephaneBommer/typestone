@@ -3,6 +3,7 @@ uniform float uSize1;
 uniform float uSize2;
 uniform float uThickness1;
 uniform float uThickness2;
+uniform float cameraZoom;
 varying vec3 worldPos;
 
 float grid(float size, float thickness) {
@@ -19,5 +20,8 @@ void main() {
     float gridAlpha = max(gSmall, gLarge);
 
     if (gridAlpha < 0.01) discard;
-    gl_FragColor = vec4(uColor, gridAlpha);
+
+    float fade = smoothstep(2.0, 6.0, cameraZoom);
+
+    gl_FragColor = vec4(uColor, gridAlpha * fade);
 }

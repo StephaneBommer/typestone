@@ -14,6 +14,11 @@ export class InputHandler {
 	private editMode: EditMode;
 	private lastMousePos: Pos | null = null;
 	private db: SimulationDb;
+	private isSelecting = false;
+	private selectionStart: Pos | null = null;
+	private selectionEnd: Pos | null = null;
+	private selectionMade = false;
+
 	constructor(
 		scene: SimulationScene,
 		gridSize: number,
@@ -42,110 +47,130 @@ export class InputHandler {
 			"mousemove",
 			this.handleMouseMove.bind(this),
 		);
-		window.addEventListener("keydown", async (event) => {
-			if (event.key === "Escape") {
-				this.editMode.escape();
-			}
-			if (event.key === "r") {
-				this.editMode.rotateComponent(this.lastMousePos);
-			}
-			if (event.key === "e") {
-				this.editMode.toggleEditMode();
-			}
-			if (event.key === "@") {
-				this.editMode.setEditMode(EditModeEnum.Wire);
-			}
-			if (event.key === "d") {
-				this.editMode.setEditMode(EditModeEnum.Delete);
-			}
-			if (event.key === "s") {
-				this.editMode.setEditMode(EditModeEnum.Select);
-			}
-			if (event.key === "&") {
-				this.editMode.setComponentEditMode(
-					ComposantTypes.Switch,
-					this.lastMousePos,
-				);
-			}
-			if (event.key === "é") {
-				this.editMode.setComponentEditMode(
-					ComposantTypes.BufferGate,
-					this.lastMousePos,
-				);
-			}
-			if (event.key === '"') {
-				this.editMode.setComponentEditMode(
-					ComposantTypes.NotGate,
-					this.lastMousePos,
-				);
-			}
-			if (event.key === "'") {
-				this.editMode.setComponentEditMode(
-					ComposantTypes.TimerGate,
-					this.lastMousePos,
-				);
-			}
-			if (event.key === "(") {
-				this.editMode.setComponentEditMode(
-					ComposantTypes.AndGate,
-					this.lastMousePos,
-				);
-			}
-			if (event.key === "§") {
-				this.editMode.setComponentEditMode(
-					ComposantTypes.OrGate,
-					this.lastMousePos,
-				);
-			}
-			if (event.key === "è") {
-				this.editMode.setComponentEditMode(
-					ComposantTypes.XorGate,
-					this.lastMousePos,
-				);
-			}
-			if (event.key === "!") {
-				this.editMode.setComponentEditMode(
-					ComposantTypes.LatchGate,
-					this.lastMousePos,
-				);
-			}
-			if (event.key === "Backspace") {
-				// this.db.resetDb();
-				this.editMode.stopEditing();
-			}
-			if (event.key === "Shift") {
-				this.editMode.setShift(true);
-			}
-			if (event.key === "ArrowRight") {
-				this.editMode.right();
-			}
-			if (event.key === "ArrowLeft") {
-				this.editMode.left();
-			}
-			if (event.key === "ArrowUp") {
-				this.editMode.up();
-			}
-			if (event.key === "ArrowDown") {
-				this.editMode.down();
-			}
+		this.scene.canvas.addEventListener(
+			"mousedown",
+			this.handleMouseDown.bind(this),
+		);
+		this.scene.canvas.addEventListener(
+			"mouseup",
+			this.handleMouseUp.bind(this),
+		);
+		window.addEventListener("keydown", this.handleKeyDown.bind(this));
+		window.addEventListener("keyup", this.handleKeyUp.bind(this));
+	}
 
-			if ((event.ctrlKey || event.metaKey) && event.key === "c") {
-				this.editMode.copy();
-			}
+	private handleKeyDown(event: KeyboardEvent) {
+		if (event.key === "Escape") {
+			this.editMode.escape();
+		}
+		if (event.key === "r") {
+			this.editMode.rotateComponent(this.lastMousePos);
+		}
+		if (event.key === "e") {
+			this.editMode.toggleEditMode();
+		}
+		if (event.key === "@") {
+			this.editMode.setEditMode(EditModeEnum.Wire);
+		}
+		if (event.key === "d") {
+			this.editMode.setEditMode(EditModeEnum.Delete);
+		}
+		if (event.key === "s") {
+			this.editMode.setEditMode(EditModeEnum.Select);
+		}
+		if (event.key === "&") {
+			this.editMode.setComponentEditMode(
+				ComposantTypes.Switch,
+				this.lastMousePos,
+			);
+		}
+		if (event.key === "é") {
+			this.editMode.setComponentEditMode(
+				ComposantTypes.BufferGate,
+				this.lastMousePos,
+			);
+		}
+		if (event.key === '"') {
+			this.editMode.setComponentEditMode(
+				ComposantTypes.NotGate,
+				this.lastMousePos,
+			);
+		}
+		if (event.key === "'") {
+			this.editMode.setComponentEditMode(
+				ComposantTypes.TimerGate,
+				this.lastMousePos,
+			);
+		}
+		if (event.key === "(") {
+			this.editMode.setComponentEditMode(
+				ComposantTypes.AndGate,
+				this.lastMousePos,
+			);
+		}
+		if (event.key === "§") {
+			this.editMode.setComponentEditMode(
+				ComposantTypes.OrGate,
+				this.lastMousePos,
+			);
+		}
+		if (event.key === "è") {
+			this.editMode.setComponentEditMode(
+				ComposantTypes.XorGate,
+				this.lastMousePos,
+			);
+		}
+		if (event.key === "!") {
+			this.editMode.setComponentEditMode(
+				ComposantTypes.LatchGate,
+				this.lastMousePos,
+			);
+		}
+		if (event.key === "Backspace") {
+			// this.db.resetDb();
+			this.editMode.delete();
+		}
+		if (event.key === "Shift") {
+			this.editMode.setShift(true);
+		}
+		if (event.key === "ArrowRight") {
+			this.editMode.right();
+		}
+		if (event.key === "ArrowLeft") {
+			this.editMode.left();
+		}
+		if (event.key === "ArrowUp") {
+			this.editMode.up();
+		}
+		if (event.key === "ArrowDown") {
+			this.editMode.down();
+		}
 
-			// Coller
-			if ((event.ctrlKey || event.metaKey) && event.key === "v") {
-				this.editMode.paste();
-			}
-		});
-		window.addEventListener("keyup", (event) => {
-			if (event.key === "Shift") {
-				this.editMode.setShift(false);
-			}
-		});
+		if ((event.ctrlKey || event.metaKey) && event.key === "c") {
+			this.editMode.copy();
+		}
+
+		if ((event.ctrlKey || event.metaKey) && event.key === "v") {
+			this.editMode.paste();
+		}
+
+		if (event.key === "Enter") {
+			this.editMode.apply();
+		}
+	}
+
+	private handleKeyUp(event: KeyboardEvent) {
+		if (event.key === "Shift") {
+			this.editMode.setShift(false);
+		}
 	}
 
 	private handleClick(event: MouseEvent) {
+		if (this.selectionMade) {
+			this.selectionMade = false;
+			return;
+		}
+
 		const positions = this.findPositionOnGrid(event);
 		if (!positions) return;
 
@@ -160,19 +185,52 @@ export class InputHandler {
 		});
 	}
 
-	private handleMouseMove(event: MouseEvent) {
-		const positions = this.findPositionOnGrid(event);
-		if (!positions) return;
+	private handleMouseDown(event: MouseEvent) {
+		if (event.button !== 0) return;
+		const pos = this.findPositionOnGrid(event);
+		if (!pos) return;
 
+		this.selectionStart = pos;
+		this.isSelecting = true;
+	}
+
+	private handleMouseUp(event: MouseEvent) {
+		if (!this.isSelecting) return;
+		this.isSelecting = false;
+
+		if (!this.selectionStart || !this.selectionEnd) return;
+		if (
+			this.selectionStart[0] !== this.selectionEnd[0] ||
+			this.selectionStart[1] !== this.selectionEnd[1]
+		) {
+			this.editMode.releaseSelection(this.selectionStart, this.selectionEnd);
+			this.selectionMade = true;
+		}
+
+		this.selectionStart = null;
+		this.selectionEnd = null;
+
+		event.stopImmediatePropagation();
+	}
+
+	private handleMouseMove(event: MouseEvent) {
+		const pos = this.findPositionOnGrid(event);
+		if (!pos) return;
 		if (
 			this.lastMousePos &&
-			positions[0] === this.lastMousePos[0] &&
-			positions[1] === this.lastMousePos[1]
+			pos[0] === this.lastMousePos[0] &&
+			pos[1] === this.lastMousePos[1]
 		) {
 			return;
 		}
-		this.lastMousePos = positions;
-		this.editMode.mousemove(positions, event);
+
+		if (this.isSelecting && this.selectionStart) {
+			this.selectionEnd = pos;
+			this.editMode.setSelection(this.selectionStart, this.selectionEnd);
+		} else {
+			this.lastMousePos = pos;
+			this.editMode.mousemove(pos, event);
+		}
 	}
 
 	private findPositionOnGrid(event: MouseEvent): Pos | null {

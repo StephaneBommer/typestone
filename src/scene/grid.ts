@@ -10,10 +10,12 @@ export class Grid extends THREE.Group {
 	private defaultColor = new THREE.Color(0x161616);
 	private editColor = new THREE.Color(0x262626);
 	private scene: SimulationScene;
+	private zoom: number;
 
 	constructor(scene: SimulationScene) {
 		super();
 		this.scene = scene;
+		this.zoom = this.scene.camera.zoom;
 
 		this.material = new THREE.ShaderMaterial({
 			side: THREE.DoubleSide,
@@ -25,6 +27,7 @@ export class Grid extends THREE.Group {
 				uSize2: { value: SIZE * 10 },
 				uThickness1: { value: 1.0 },
 				uThickness2: { value: 1.0 },
+				cameraZoom: { value: this.zoom },
 			},
 			vertexShader,
 			fragmentShader,
@@ -48,9 +51,11 @@ export class Grid extends THREE.Group {
 		this.material.uniforms.uThickness2.value = mode ? 2.3 : 1.0;
 	}
 
-	public update(camera: THREE.Camera) {
+	public update(camera: THREE.OrthographicCamera) {
 		const pos = new THREE.Vector3();
 		camera.getWorldPosition(pos);
+		this.zoom = camera.zoom;
+		this.material.uniforms.cameraZoom.value = this.zoom;
 
 		this.mesh.position.set(
 			this.scene.sizes.width / 2 + pos.x,

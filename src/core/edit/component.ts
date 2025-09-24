@@ -73,12 +73,4 @@ export class ComponentEditHandler extends BaseEditHandler {
 		});
 		this.newComponents = [];
 	}
-
-	public setShift() {}
-	public right() {}
-	public left() {}
-	public up() {}
-	public down() {}
-	public copy() {}
-	public paste() {}
 }

@@ -10,21 +10,21 @@ export class DeleteEditHandler extends BaseEditHandler {
 	} | null = null;
 
 	async click(_: Pos) {
-		if (this.elementDeleting) {
-			this.scene.remove(this.elementDeleting.mesh);
-			if (this.elementDeleting.mesh instanceof Wire) {
-				this.db.deleteWire(this.elementDeleting.id);
-			} else {
-				this.db.deleteComponent(this.elementDeleting.id);
-			}
-			this.elementDeleting.mesh.clear();
-			this.elementDeleting = null;
+		if (!this.elementDeleting) return;
+
+		this.scene.remove(this.elementDeleting.mesh);
+		if (this.elementDeleting.mesh instanceof Wire) {
+			this.db.deleteWire(this.elementDeleting.id);
+		} else {
+			this.db.deleteComponent(this.elementDeleting.id);
 		}
+		this.elementDeleting.mesh.clear();
+		this.elementDeleting = null;
 	}
 
 	async mousemove(_: Pos, event?: MouseEvent) {
 		if (!event) return;
-		const object = this.scene.intersectElements(event);
+		const object = this.scene.intersectElements([event.clientX, event.clientY]);
 
 		if (
 			this.elementDeleting &&
@@ -52,12 +52,4 @@ export class DeleteEditHandler extends BaseEditHandler {
 			this.elementDeleting = null;
 		}
 	}
-
-	public setShift() {}
-	public right() {}
-	public left() {}
-	public up() {}
-	public down() {}
-	public copy() {}
-	public paste() {}
 }
