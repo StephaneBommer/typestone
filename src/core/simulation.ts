@@ -12,6 +12,7 @@ import type {
 	getAllComponents,
 } from "../db/types";
 import type { SimulationScene } from "../scene";
+import type { ElementMesh } from "../scene/elements";
 import type { Component } from "../scene/elements/component";
 import { Switch } from "../scene/elements/component/switch";
 import type { Wire } from "../scene/elements/wire";
@@ -115,7 +116,9 @@ export class Simulation {
 	}
 	public Timer(component: CreateSimulationComponent) {
 		const { value: timer, key } = component;
-		if (!("ticks" in timer)) return;
+		if (!("ticks" in timer)) {
+			throw new Error("Timer component must have ticks");
+		}
 		this.rust_simulation.add_timer(
 			new Int32Array(timer.positions),
 			timer.ticks,
@@ -181,7 +184,7 @@ export class Simulation {
 		return this.Wire(wire);
 	}
 
-	public addComponent(component: CreateSimulationComponent) {
+	public addComponent(component: CreateSimulationComponent): ElementMesh {
 		switch (component.value.type) {
 			case ComposantTypes.AndGate:
 				return this.AndGate(component);

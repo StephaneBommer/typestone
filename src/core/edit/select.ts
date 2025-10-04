@@ -1,8 +1,9 @@
+import type { CreateComponent, CreateWire } from "../../db/types";
 import type { ElementMesh } from "../../scene/elements";
 import { Component } from "../../scene/elements/component";
 import { Wire } from "../../scene/elements/wire";
 import { COPY_OFFSET_X, COPY_OFFSET_Y } from "../../utils/constants";
-import type { ComposantTypes, Pos, WirePos } from "../../utils/types";
+import type { Pos, WirePos } from "../../utils/types";
 import { BaseEditHandler } from "./base";
 
 export class SelectEditHandler extends BaseEditHandler {
@@ -94,50 +95,70 @@ export class SelectEditHandler extends BaseEditHandler {
 		if (this.elementsCopied.length === 0) return;
 		this.isLoading = true;
 		await this.pushChanges();
-		const newElements = await Promise.all(
-			this.elementsCopied.map(async (el) => {
-				if (el.mesh instanceof Wire) {
-					const newPositions: WirePos = el.mesh.wirePos.map((pos) => [
-						pos[0] + COPY_OFFSET_X,
-						pos[1] + COPY_OFFSET_Y,
-					]);
 
-					const newId = await this.db.addWire(newPositions);
+		const wiresToAdd: CreateWire["value"][] = [];
+		const compsToAdd: CreateComponent["value"][] = [];
 
-					const mesh = this.simulation.addWire({
-						key: newId.key,
-						value: { positions: newPositions },
-					});
+		this.elementsCopied.forEach((el) => {
+			if (el.mesh instanceof Wire) {
+				const newPositions: WirePos = el.mesh.wirePos.map((pos) => [
+					pos[0] + COPY_OFFSET_X,
+					pos[1] + COPY_OFFSET_Y,
+				]);
+				wiresToAdd.push({ positions: newPositions });
+			} else if (el.mesh instanceof Component) {
+				const newPos: Pos = [
+					el.mesh.pos[0] + COPY_OFFSET_X,
+					el.mesh.pos[1] + COPY_OFFSET_Y,
+				];
+				compsToAdd.push({
+					type: el.mesh.type,
+					positions: newPos,
+					orientation: el.mesh.orientation,
+					ticks: el.mesh.ticks,
+				});
+			}
+		});
 
-					return { mesh, id: newId.key };
-				}
+		const { wireIds, compIds } = await this.db.batchAdd(wiresToAdd, compsToAdd);
 
-				if (el.mesh instanceof Component) {
-					const newPos: Pos = [
-						el.mesh.pos[0] + COPY_OFFSET_X,
-						el.mesh.pos[1] + COPY_OFFSET_Y,
-					];
-					const newId = await this.db.addComponent(
-						el.mesh.type as ComposantTypes,
-						newPos,
-						el.mesh.orientation,
-						el.mesh.ticks,
-					);
-					const mesh = this.simulation.addComponent({
-						key: newId.id,
-						value: {
-							type: el.mesh.type,
-							orientation: el.mesh.orientation,
-							positions: newPos,
-							ticks: el.mesh.ticks,
-						},
-					});
-					return { mesh, id: newId.id };
-				}
-			}),
-		);
+		const newElements: { mesh: ElementMesh; id: number }[] = [];
+		let wireIndex = 0;
+		let compIndex = 0;
 
-		this.elementsSelected = newElements as { mesh: ElementMesh; id: number }[];
+		this.elementsCopied.forEach((el) => {
+			if (el.mesh instanceof Wire) {
+				const id = wireIds[wireIndex++];
+				const mesh = this.simulation.addWire({
+					key: id,
+					value: {
+						positions: el.mesh.wirePos.map((pos) => [
+							pos[0] + COPY_OFFSET_X,
+							pos[1] + COPY_OFFSET_Y,
+						]),
+					},
+				});
+				newElements.push({ mesh, id });
+			} else if (el.mesh instanceof Component) {
+				const id = compIds[compIndex++];
+				const newPos: Pos = [
+					el.mesh.pos[0] + COPY_OFFSET_X,
+					el.mesh.pos[1] + COPY_OFFSET_Y,
+				];
+				const mesh = this.simulation.addComponent({
+					key: id,
+					value: {
+						type: el.mesh.type,
+						orientation: el.mesh.orientation,
+						positions: newPos,
+						ticks: el.mesh.ticks,
+					},
+				});
+				newElements.push({ mesh, id });
+			}
+		});
+
+		this.elementsSelected = newElements;
 		this.updateOutline();
 		this.isLoading = false;
 	}
@@ -147,27 +168,26 @@ export class SelectEditHandler extends BaseEditHandler {
 		const isAlreadyLoading = this.isLoading;
 		this.isLoading = true;
 
-		for (const { mesh, id } of this.elementsSelected) {
+		const wiresToUpdate: CreateWire[] = [];
+		const compsToUpdate: CreateComponent[] = [];
+
+		this.elementsSelected.map(({ mesh, id }) => {
 			if (mesh instanceof Wire) {
-				const wire = await this.db.getWireByKey(id);
-				if (!wire) continue;
-
-				const newPositions: WirePos = wire.value.positions.map((pos) => [
-					pos[0] + this.shiftX,
-					pos[1] + this.shiftY,
-				]);
-
-				await this.db.updateWire(id, newPositions);
+				wiresToUpdate.push({ key: id, value: { positions: mesh.wirePos } });
 			} else if (mesh instanceof Component) {
-				const component = await this.db.getComponentByKey(id);
-				if (!component) continue;
-
-				const [px, py] = component.value.positions;
-				await this.db.updateComponent(id, {
-					positions: [px + this.shiftX, py + this.shiftY],
+				compsToUpdate.push({
+					key: id,
+					value: {
+						positions: mesh.pos,
+						type: mesh.type,
+						orientation: mesh.orientation,
+						ticks: mesh.ticks,
+					},
 				});
 			}
-		}
+		});
+
+		await this.db.batchUpdate(wiresToUpdate, compsToUpdate);
 
 		this.shiftX = 0;
 		this.shiftY = 0;

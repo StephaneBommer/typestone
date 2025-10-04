@@ -4,7 +4,14 @@ import {
 	ElementTypes,
 	type WirePos,
 } from "../utils/types";
-import type { GetComponents, GetWires, MyDB, getAllComponents } from "./types";
+import type {
+	CreateComponent,
+	CreateWire,
+	GetComponents,
+	GetWires,
+	MyDB,
+	getAllComponents,
+} from "./types";
 
 export class SimulationDb {
 	private db!: IDBPDatabase<MyDB>;
@@ -43,6 +50,37 @@ export class SimulationDb {
 			id: component,
 			positions,
 		};
+	}
+
+	public async batchAdd(
+		wires: CreateWire["value"][],
+		components: CreateComponent["value"][],
+	) {
+		const tx = this.db.transaction(
+			[ElementTypes.Wire, ElementTypes.Component],
+			"readwrite",
+		);
+
+		const wireStore = tx.objectStore(ElementTypes.Wire);
+		const compStore = tx.objectStore(ElementTypes.Component);
+
+		const wireIds = await Promise.all(
+			wires.map(({ positions }) => wireStore.add({ positions })),
+		);
+
+		const compIds = await Promise.all(
+			components.map(({ type, positions, orientation, ...props }) =>
+				compStore.add({
+					type,
+					positions,
+					orientation,
+					...("ticks" in props ? { ticks: props.ticks } : {}),
+				}),
+			),
+		);
+
+		await tx.done;
+		return { wireIds, compIds };
 	}
 
 	public async getWires(): Promise<GetWires> {
@@ -118,6 +156,22 @@ export class SimulationDb {
 		await this.db.put(ElementTypes.Component, updated, id);
 
 		return { key: id, value: updated };
+	}
+
+	public async batchUpdate(wires: CreateWire[], components: CreateComponent[]) {
+		const tx = this.db.transaction(
+			[ElementTypes.Wire, ElementTypes.Component],
+			"readwrite",
+		);
+
+		const wireStore = tx.objectStore(ElementTypes.Wire);
+		const compStore = tx.objectStore(ElementTypes.Component);
+
+		wires.forEach(({ key, value }) => wireStore.put(value, key));
+
+		components.forEach(({ key, value }) => compStore.put(value, key));
+
+		await tx.done;
 	}
 
 	public async getElementFromPosition(position: [number, number]) {
